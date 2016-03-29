@@ -1,0 +1,26 @@
+{
+  "name": "merry",
+  "version": "1.0.0",
+  "description": "Modular http framework",
+  "main": "index.js",
+  "scripts": {
+    "deps": "dependency-check . && dependency-check . --extra --no-dev",
+    "test": "standard && npm run deps && NODE_ENV=test node test",
+    "test:cov": "standard && npm run deps && NODE_ENV=test istanbul cover test.js"
+  },
+  "repository": "yoshuawuyts/merry",
+  "keywords": [
+    "http",
+    "framework",
+    "modular",
+    "http-framework"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "dependency-check": "^2.5.1",
+    "istanbul": "^0.4.2",
+    "standard": "^6.0.8",
+    "tape": "^4.5.1"
+  }
+}
