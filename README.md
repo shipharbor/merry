@@ -2,98 +2,35 @@
 [![npm version][2]][3] [![build status][4]][5] [![test coverage][6]][7]
 [![downloads][8]][9] [![js-standard-style][10]][11]
 
-merry is a modular server framework built for speed. It's grounded in years of
-experience building solid HTTP services. A transparent CLI coupled with a set
-of battle-tested components provide everything needed to efficiently build
-performant Node servers.
+:sailboat::skull: _performance ahoy!_
+
+A framework for creating nimble HTTP services. Compose REST API's at the speed
+of thought.
 
 ## Features
-- Covers most common use cases
-- Doesn't override Node built-ins
-- Consistent error handling
-- Super cute logs
-- Fast routing
-- Basically a giant grab bag of best practices
+- __fast:__ using `streams` and `cluster`, merry handles request like no other
+- __secure:__ keep a leash on unix privileges using `downgrade`
+- __communicative:__ standardized [ndjson][ndjson] logs for everything
+- __sincere:__ doesn't monkey patch Node's built-ins
 
 ## Usage
-```sh
-$ merry index.js -p 1337 -l debug -e development
-```
 ```js
-const NotFound = require('merry/not-found')
-const Cluster = require('merry/cluster')
-const Config = require('merry/config')
-const Signal = require('merry/signal')
-const Logger = require('merry/logger')
-const Router = require('merry/router')
-const Info = requre('merry/info')
-const bankai = require('bankai')
-const http = require('http')
+const merry = require('merry')
 
-const log = Logger('main')
-const info = Info(log)
+const log = merry.log('main')
+const server = merry()
 
-module.exports = main
+app.router((route) => [
+  route('/', mainApi)
+])
 
-// allow interfacing through CLI
-if (!module.parent) {
-  const config = Config({
-    LOG_LEVEL: 'info',
-    API_PORT: 1337,
-    NODE_ENV: String
-  })
+server.listen(1337)
+server.downgrade()
 
-  const cluster = Cluster()
-  cluster.master(function () {
-    info.config(config)
-    Signal(log.error, cluster.close)
-  })
-  cluster.worker(function () {
-    main(config)
-  })
-  cluster.start()
-}
-
-// load configuration and init server
-function main (config) {
-  Logger.output({ level: config.LOG_LEVEL, stream: process.stdout })
-
-  const router = createRouter(config)
-  const server = http.createServer(function (req, res) {
-    router(req, res).pipe(Sink(req, res, log.debug))
-  }).listen(config.API_PORT)
-
-  return info.server(server)
-}
-
-// bootstrap a router
-function createRouter (config) {
-  const router = serverRouter('/404')
-  router.on('/404', NotFound())
-  router.on('/', bankai.html())
-  return router
+function mainApi (req, res, params) {
+  return merry.string('hello world!')
 }
 ```
-
-## API
-### merry/body
-### merry/cluster
-### merry/cookie
-### merry/error
-### merry/http
-### merry/logger
-### merry/mime
-### merry/multipart
-### merry/redirect
-### merry/router
-### merry/uncaught
-
-## Why?
-npm offers a great selection of packages, but they're [not very
-discoverable][12]. This package bundles the ecosystem to cover 90% of what
-servers should do, allowing you to customize it where needed. If there's
-something you don't like, that's fine - everything is built around
-`require('http')` and plays well with others.
 
 ## Installation
 ```sh
@@ -101,17 +38,6 @@ $ npm install merry
 ```
 
 ## See Also
-- [http-framework](https://github.com/raynos/http-framework) - the original
-  modular http framework
-- [mississippi](https://github.com/maxogden/mississippi) - modular streams
-  framework
-- [yo-yo](https://github.com/maxogden/yo-yo) - modular DOM framework
-- [virtual-app](https://github.com/sethvincent) - modular client framework
-- [level](https://github.com/Level/level) - modular database
-- [bankai](https://github.com/yoshuawuyts/bankai) - modular asset framework
-- [abstract-blob-store](https://github.com/maxogden/abstract-blob-store) -
-  modular object storage framework
-- [tape](https://github.com/substack/tape) - TAP test runner
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
@@ -128,4 +54,4 @@ $ npm install merry
 [9]: https://npmjs.org/package/merry
 [10]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square
 [11]: https://github.com/feross/standard
-[12]: https://twitter.com/seldo/status/658802369983938560
+[ndjson]: http://ndjson.org/
