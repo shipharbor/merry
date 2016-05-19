@@ -9,7 +9,7 @@ of thought.
 
 ## Features
 - __fast:__ using `streams` and `cluster`, merry handles request like no other
-- __secure:__ keep a leash on unix privileges using `downgrade`
+- __secure:__ keep a leash on unix privileges
 - __communicative:__ standardized [ndjson][ndjson] logs for everything
 - __sincere:__ doesn't monkey patch Node's built-ins
 
@@ -20,16 +20,11 @@ const merry = require('merry')
 const log = merry.log('main')
 const server = merry()
 
-app.router((route) => [
-  route('/', mainApi)
+server.router((route) => [
+  route('/', (req, res, param) => merry.string('hello world!'))
 ])
 
 server.listen(1337)
-server.downgrade()
-
-function mainApi (req, res, params) {
-  return merry.string('hello world!')
-}
 ```
 
 ## Installation
@@ -38,6 +33,8 @@ $ npm install merry
 ```
 
 ## See Also
+- [choo](https://github.com/yoshuawuyts/choo) - framework for creating sturdy
+  web applications
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
