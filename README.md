@@ -12,16 +12,55 @@ of thought.
 - __secure:__ keep a leash on unix privileges
 - __communicative:__ standardized [ndjson][ndjson] logs for everything
 - __sincere:__ doesn't monkey patch Node's built-ins
+- __linear:__ smoothless scaling from tinkering to production
 
 ## Usage
 ```js
 const merry = require('merry')
-
-const log = merry.log('main')
 const server = merry()
 
 server.router((route) => [
-  route('/', (req, res, param) => merry.string('hello world!'))
+  route('/', (req, res, param) => 'hello world!', [
+    route(':name', {
+      GET: (req, res, param) => `hello ${param.name}`),
+      PUT: (req, res, param) => `updated ${param.name}`)
+    }
+  ])
+])
+
+server.listen(1337)
+```
+
+## Validation
+`merry` provides you with the right handles to validate incoming requests. It
+uses `JSON-schema` for request bodies, and allows you to pass custom validators
+for all other fields:
+```js
+const merry = require('merry')
+
+const server = merry()
+
+const schema = `
+  {
+    "type": "object",
+    "properties": {
+      "message": {
+        "type": "string"
+      }
+    },
+    "required": [ "message" ]
+  }
+`
+
+server.router((route) => [
+  route('/message', {
+    POST: {
+      accepts: [ 'application/json' ],
+      responds: [ 'application/json' ],
+      body: schema,
+      handler: (req, res, params, body) => 'received message: ${body.message}'
+    })
+  }
 ])
 
 server.listen(1337)
