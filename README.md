@@ -9,62 +9,74 @@ of thought.
 
 ## Features
 - __fast:__ using `streams` and `cluster`, merry handles request like no other
-- __secure:__ keep a leash on unix privileges
 - __communicative:__ standardized [ndjson][ndjson] logs for everything
 - __sincere:__ doesn't monkey patch Node's built-ins
 - __linear:__ smoothless scaling from tinkering to production
 
 ## Usage
 ```js
+// asset serving
+const browserify = require('browserify')
+const bankai = require('bankai')
 const merry = require('merry')
-const server = merry()
 
-server.router((route) => [
-  route('/', (req, res, param) => 'hello world!', [
-    route(':name', {
-      GET: (req, res, param) => `hello ${param.name}`),
-      PUT: (req, res, param) => `updated ${param.name}`)
-    }
-  ])
+const assets = bankai()
+const app = merry()
+app.router([
+  ['/', assets.html()],
+  ['/bundle.js', assets.js(browserify)],
+  ['/bundle.css', assets.css()]
 ])
-
-server.listen(1337)
+app.start()
 ```
-
-## Validation
-`merry` provides you with the right handles to validate incoming requests. It
-uses `JSON-schema` for request bodies, and allows you to pass custom validators
-for all other fields:
 ```js
+// API
 const merry = require('merry')
+const pull = require('pull')
 
-const server = merry()
+const app = merry()
 
-const schema = `
-  {
-    "type": "object",
-    "properties": {
-      "message": {
-        "type": "string"
-      }
-    },
-    "required": [ "message" ]
-  }
-`
-
-server.router((route) => [
-  route('/message', {
-    POST: {
-      accepts: [ 'application/json' ],
-      responds: [ 'application/json' ],
-      body: schema,
-      handler: (req, res, params, body) => 'received message: ${body.message}'
-    })
-  }
+app.router([
+  ['/routes/foo', {
+    post: (http$) => pull(http$) // echo request back to response
+  }]
 ])
 
-server.listen(1337)
+app.start()
 ```
+```js
+// expose to cli
+const browserify = require('browserify')
+const bankai = require('bankai')
+const merry = require('merry')
+
+if (module.parent) module.exports = createApp
+else createApp({ port: 8080 })
+
+function createApp (config) {
+  const assets = bankai()
+  const app = merry(config)
+  app.router([
+    ['/', assets.html()],
+    ['/bundle.js', assets.js(browserify)],
+    ['/bundle.css', assets.css()]
+  ])
+  app.start()
+}
+```
+
+## Concepts
+### router
+The `router` acts as the site map to the application. It matches incoming
+requests to their corresponding `routes`.
+
+### routes
+`routes` are individual functions that act as the doorway to application logic.
+Each `route` validates an incoming request, and then either rejects it or calls
+logic defined in any of the `models`.
+
+### models
+The application logic is `stored` in the `models`.
 
 ## Installation
 ```sh
