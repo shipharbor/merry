@@ -2,8 +2,6 @@
 [![npm version][2]][3] [![build status][4]][5] [![test coverage][6]][7]
 [![downloads][8]][9] [![js-standard-style][10]][11]
 
-:sailboat::skull: _ahoy mate!_
-
 A framework for creating nimble HTTP services. Compose REST API's at the speed
 of thought.
 
