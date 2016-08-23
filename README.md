@@ -2,7 +2,7 @@
 [![npm version][2]][3] [![build status][4]][5] [![test coverage][6]][7]
 [![downloads][8]][9] [![js-standard-style][10]][11]
 
-:sailboat::skull: _performance ahoy!_
+:sailboat::skull: _ahoy mate!_
 
 A framework for creating nimble HTTP services. Compose REST API's at the speed
 of thought.
@@ -14,6 +14,22 @@ of thought.
 - __linear:__ smoothless scaling from tinkering to production
 
 ## Usage
+```js
+// API
+const merry = require('merry')
+const pump = require('pump')
+
+const app = merry()
+
+app.router([
+  ['/routes/foo', {
+    post: (req, res, params) =>  pump(req, res)
+  }]
+])
+
+app.start()
+```
+
 ```js
 // asset serving
 const browserify = require('browserify')
@@ -29,54 +45,40 @@ app.router([
 ])
 app.start()
 ```
-```js
-// API
-const merry = require('merry')
-const pull = require('pull')
 
-const app = merry()
+## Philosophy
+HTTP services should not be a choice between fast and nice. HTTP services
+should be standardized, we should not be hand-rolling our own logging, metrics
+and option parsing. The "12 factor app" had some great ideas; how about we wrap
+those up in a sweet framework using only the highest quality ingredients and
+tune it for performance. How about it eh?
 
-app.router([
-  ['/routes/foo', {
-    post: (http$) => pull(http$) // echo request back to response
-  }]
-])
+## Pretty printing
+`merry` ships with a built-in pretty printer for [ndjson][ndjson] logs:
 
-app.start()
-```
-```js
-// expose to cli
-const browserify = require('browserify')
-const bankai = require('bankai')
-const merry = require('merry')
-
-if (module.parent) module.exports = createApp
-else createApp({ port: 8080 })
-
-function createApp (config) {
-  const assets = bankai()
-  const app = merry(config)
-  app.router([
-    ['/', assets.html()],
-    ['/bundle.js', assets.js(browserify)],
-    ['/bundle.css', assets.css()]
-  ])
-  app.start()
-}
+```sh
+$ node ./my-app | merry-pretty
+# [0000] http://localhost:8080/ (connect) (url)
+# [0000] info (server)
+#   "port": "8080"
+#   "env": "undefined"
+#   "pid": "78938"
+# [0003] info  28ms          9B response GET    200 / (http)
+# [0004] info  5ms           9B response GET    200 / (http)
 ```
 
-## Concepts
-### router
-The `router` acts as the site map to the application. It matches incoming
-requests to their corresponding `routes`.
+## API
+### app = merry(opts)
+Create a new instance of `merry`. Takes optional opts:
+- __opts.logLevel:__ defaults to `'info'`. Determine the cutoff point for
+  logging.
+- __opts.port:__ defaults to `8080`. The port the server should listen to
 
-### routes
-`routes` are individual functions that act as the doorway to application logic.
-Each `route` validates an incoming request, and then either rejects it or calls
-logic defined in any of the `models`.
+### app.router(dft?, routes)
+Register routes. `dft` defaults to `/404`
 
-### models
-The application logic is `stored` in the `models`.
+### app.start()
+Start listening for incoming HTTP requests.
 
 ## Installation
 ```sh

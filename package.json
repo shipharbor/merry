@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Modular http framework",
   "main": "index.js",
+  "bin": {
+    "merry-pretty": "./pretty"
+  },
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev",
     "test": "standard && npm run deps && NODE_ENV=test node test",
@@ -16,7 +19,15 @@
     "http-framework"
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "bole": "^3.0.1",
+    "garnish": "^5.2.0",
+    "http-ndjson": "^3.0.0",
+    "pump": "^1.0.1",
+    "server-sink": "^1.0.0",
+    "server-summary": "^6.0.1",
+    "size-stream": "^1.0.1"
+  },
   "devDependencies": {
     "dependency-check": "^2.5.1",
     "istanbul": "^0.4.2",
