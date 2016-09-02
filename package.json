@@ -24,6 +24,7 @@
     "garnish": "^5.2.0",
     "http-ndjson": "^3.0.0",
     "pump": "^1.0.1",
+    "server-router": "^3.0.0",
     "server-sink": "^1.0.0",
     "server-summary": "^6.0.1",
     "size-stream": "^1.0.1"
