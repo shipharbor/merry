@@ -38,7 +38,6 @@ function merry (opts) {
   function start () {
     const server = http.createServer((req, res) => {
       const sink = serverSink(req, res, _log.info)
-      console
       pump(_router(req, res), sink)
     })
 
