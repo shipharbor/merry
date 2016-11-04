@@ -1,9 +1,8 @@
-// const listen = require('merry/listen')
+const listen = require('../listen')
 const string = require('../string')
 const notFound = require('../404')
 const error = require('../error')
 const merry = require('../')
-const http = require('http')
 
 const app = merry()
 
@@ -23,5 +22,4 @@ app.router({ default: '/404' }, [
 ])
 
 const handler = app.start()
-http.createServer(handler).listen(8080)
-// listen(8080, handler)
+listen(8080, handler)
