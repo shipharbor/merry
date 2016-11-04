@@ -20,8 +20,6 @@ const string = require('merry/string')
 const notFound = require('merry/404')
 const error = require('merry/error')
 const merry = require('merry')
-const http = require('http')
-const pump = require('pump')
 
 const app = merry()
 
@@ -36,7 +34,7 @@ app.router({ default: '/404' }, [
     get: (req, res, params, done) => {
       done(null, string('hello very explicit GET'))
     }
-  }]
+  }],
   [ '/404', notFound() ]
 ])
 

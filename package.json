@@ -8,6 +8,7 @@
   },
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev",
+    "start": "node example",
     "test": "standard && npm run deps && NODE_ENV=test node test",
     "test:cov": "standard && npm run deps && NODE_ENV=test istanbul cover test.js"
   },
