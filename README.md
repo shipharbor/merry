@@ -51,14 +51,24 @@ $ node index.js | merry-pretty
 [ tbi ] talk about `bole`
 
 ## Error handling
-[ tbi ] talk about error handling using `send()` and
-`merry/error`/`explain-error`
+The `send(err, stream)` callback can either take an error or a stream. If an
+error has `.statusCode` property, that value will be used for `res.statusCode`.
+Else it'll use any status code that was set previously, and default to `500`.
+
+:warning: __If errors are in the 4xx range, the full error is returned to the
+client__ and the error will be logged as loglevel `'info'`. It's important to
+not disclose any internal information in `4xx` type errors, as it can lead to
+serious security vulnerabilities. All errors in other ranges (typically `5xx`)
+will send back the message `'server error'` and is logged as loglevel
+`'error'`.
 
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
 - __opts.logLevel:__ defaults to `'info'`. Determine the cutoff point for
   logging.
+- __opts.logStream:__ defaults to `process.stdout`. Set the output stream to
+  write logs to
 
 ### app.router(opts?, [routes])
 Register routes on the router. Take the following opts:

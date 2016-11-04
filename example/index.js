@@ -8,7 +8,7 @@ const http = require('http')
 const app = merry()
 
 app.router({ default: '/404' }, [
-  [ '/', (req, res, params, done) => {
+  [ '/', function (req, res, params, done) {
     done(null, string('hello world'))
   }],
   [ '/error', (req, res, params, done) => {

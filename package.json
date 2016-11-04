@@ -4,7 +4,7 @@
   "description": "Modular http framework",
   "main": "index.js",
   "bin": {
-    "merry-pretty": "./pretty"
+    "merry-pretty": "./pretty.js"
   },
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev",
@@ -22,6 +22,8 @@
   "license": "MIT",
   "dependencies": {
     "bole": "^3.0.1",
+    "explain-error": "^1.0.3",
+    "from2-string": "^1.1.0",
     "garnish": "^5.2.0",
     "http-ndjson": "^3.0.0",
     "pump": "^1.0.1",
