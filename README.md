@@ -1,8 +1,19 @@
-# merry [![stability][0]][1]
+<h1 align="center">merry</h1>
+
+<div align="center">
+  🌊🌊⛵️🌊🌊
+</div>
+<div align="center">
+  <strong>Nimble HTTP framework</strong>
+</div>
+<div align="center">
+  Create tiny servers that run fast
+</div>
+
+<br />
+[![stability][0]][1]
 [![npm version][2]][3] [![build status][4]][5] [![test coverage][6]][7]
 [![downloads][8]][9] [![js-standard-style][10]][11]
-
-Nimble HTTP framework. Create tiny servers that run fast.
 
 ## Features
 - __fast:__ using Node streams, merry handles request like no other
@@ -10,7 +21,7 @@ Nimble HTTP framework. Create tiny servers that run fast.
 - __communicative:__ standardized [ndjson][ndjson] logs for everything
 - __sincere:__ doesn't monkey patch Node's built-ins
 - __linear:__ smooth sailing from tinkering to production
-- __cute:__ 🌊🌊⛵️🌊🌊
+- __very cute:__ 🌊🌊⛵️🌊🌊
 
 ## Usage
 Given the following `index.js`:
@@ -48,7 +59,39 @@ $ node index.js | merry-pretty
 ```
 
 ## Logging
-[ tbi ] talk about `bole`
+Merry uses the `bole` logger under the hood. When you create a new `merry` app,
+we enable a log forwarder that by default prints all logs to `process.stdout`.
+
+To send a log, we must first create an instance of the logger. This is done by
+requireing the `merry/log` file, and instantiating it with a name. The name is
+used to help determine where the log was sent from, which is very helpful when
+debugging applications:
+```js
+const Log = require('merry/log')
+const log = Log('some-filename')
+log.inf('logging!')
+```
+
+There are different log levels that can be used. The possible log levels are:
+- __debug:__ used for developer annotation only, should not be enable in
+  production
+- __info:__ used for transactional messages
+- __warn:__ used for expected errors
+- __error:__ used for unexpected (critical) errors
+
+```js
+const Log = require('merry/log')
+const log = Log('my-file-name')
+log.debug('it works!')
+log.info('hey')
+log.warn('oh')
+log.error('oh no!')
+```
+
+The difference between an expected and unexpected error is that the first is
+generally caused by a user (e.g. wrong password) and the system knows how to
+respond, and the latter is caused by the system (e.g. there's no database) and
+the system doesn't know how to handle it.
 
 ## Error handling
 The `send(err, stream)` callback can either take an error or a stream. If an
@@ -59,8 +102,46 @@ Else it'll use any status code that was set previously, and default to `500`.
 client__ and the error will be logged as loglevel `'info'`. It's important to
 not disclose any internal information in `4xx` type errors, as it can lead to
 serious security vulnerabilities. All errors in other ranges (typically `5xx`)
-will send back the message `'server error'` and is logged as loglevel
+will send back the message `'server error'` and are logged as loglevel
 `'error'`.
+
+## JSON
+If `Object` and `Array` are the data primitives of JavaScript, JSON is the
+primitive of APIs. To help create JSON there's `merry/json`. It sets the right
+headers on `res` and efficiently turns JavaScript to JSON:
+```js
+const json = require('merry/json')
+const merry = require('merry')
+const http = require('http')
+
+const app = merry()
+app.router(['/', (req, res, params, done) => {
+  done(null, json(req, res, { message: 'hello JSON' }))
+}])
+http.createServer(app.start()).listen(8080)
+```
+
+## Routing
+Merry uses `server-router` under the hood to create its routes. Routes are
+created using recursive arrays that are turned into an efficient `trie`
+structure under the hood. You don't need to worry about any of this though; all
+you need to know is that we've tested it and it's probably among the fastest
+methods out there. Routes look like this:
+```js
+const merry = require('merry')
+const app = merry()
+app.router([
+  ['/', handleIndex],
+  ['/foo', handleFoo, [
+    ['/:bar', handleFoobarPartial]
+  ]]
+])
+```
+
+Partial routes can be set using the `':'` delimiter. Any route that's
+registered in this was will be passed to the `params` argument as a key. So
+given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
+in `params` as `{ bar: 'hello' }`.
 
 ## API
 ### app = merry(opts)
@@ -106,35 +187,21 @@ function handleRoute (req, res, params, done) {
 ### string = merry/string(string)
 Create a `readableStream` from a string. Uses `from2-string` under the hood
 
+### json = merry/json(req, res, object)
+Create a `readableStream` from an object. `req` and `res` must be passed in to
+set the appropriate headers. Uses `from2-string` under the hood
+
 ### error = merry/error(statusCode, message, err?)
-Create an HTTP error with a statusCode and a message. Can optionally be used to
-safely wrap errors.
+Create an HTTP error with a statusCode and a message. By passing an erorr as
+the third argument it will wrap the error using `explain-error` to keep prior
+stack traces.
 
 ### notFound = merry/404()
 Create a naive `/404` handler that can be passed into a path.
 
 ### log = merry/log(name)
-Create a new log client that forwards logs to the main `app`. Possible log
-levels are:
-- __debug:__ used for developer annotation only, should not be used in
-  production
-- __info:__ used for transactional messages
-- __warn:__ used for expected errors
-- __error:__ used for unexpected (critical) errors
-
-```js
-const Log = require('merry/log')
-const log = Log('my-file-name')
-log.debug('it works!')
-log.info('hey')
-log.warn('oh')
-log.error('oh no!')
-```
-
-The difference between an expected and unexpected error is that the first is
-generally caused by a user (e.g. wrong password) and the system knows how to
-respond, and the latter is caused by the system (e.g. there's no database) and
-the system doesn't know how to handle it.
+Create a new log client that forwards logs to the main `app`. See the [logging
+section](#logging) for more details.
 
 ## Installation
 ```sh

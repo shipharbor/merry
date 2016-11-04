@@ -2,6 +2,7 @@ const listen = require('../listen')
 const string = require('../string')
 const notFound = require('../404')
 const error = require('../error')
+const json = require('../json')
 const merry = require('../')
 
 const app = merry()
@@ -15,7 +16,7 @@ app.router({ default: '/404' }, [
   }],
   ['/api', {
     get: (req, res, params, done) => {
-      done(null, string('hello very explicit GET'))
+      done(null, json(req, res, { message: 'so explicit!' }))
     }
   }],
   [ '/404', notFound() ]
