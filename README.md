@@ -15,6 +15,7 @@ Nimble HTTP framework. Create tiny servers that run fast.
 ## Usage
 Given the following `index.js`:
 ```js
+const listen = require('merry/listen')
 const string = require('merry/string')
 const notFound = require('merry/404')
 const error = require('merry/error')
@@ -31,11 +32,16 @@ app.router({ default: '/404' }, [
   [ '/error', (req, res, params, done) => {
     done(error(500, 'server error!'))
   }],
+  ['/api', {
+    get: (req, res, params, done) => {
+      done(null, string('hello very explicit GET'))
+    }
+  }]
   [ '/404', notFound() ]
 ])
 
 const handler = app.start()
-http.createServer(handler).listen(8080)
+listen(8080, handler)
 ```
 
 Run using:
@@ -72,7 +78,22 @@ Each route has a signature of `(req, res, params, done)`:
   stream is passed it pipes the stream to `res` until it is done.
 
 ### handler = app.start()
-Create a handler that can be passed into an `http` server.
+Create a handler that can be passed directly into an `http` server.
+```js
+const string = require('merry/string')
+const merry = require('merry')
+const http = require('http')
+
+const app = merry()
+app.router(['/', handleRoute])
+
+const handler = app.start()
+http.createHttpServer(handler).listen(8080)
+
+function handleRoute (req, res, params, done) {
+  done(null, string('hello planet'))
+}
+```
 
 ### string = merry/string(string)
 Create a `readableStream` from a string. Uses `from2-string` under the hood
@@ -92,6 +113,20 @@ levels are:
 - __info:__ used for transactional messages
 - __warn:__ used for expected errors
 - __error:__ used for unexpected (critical) errors
+
+```js
+const Log = require('merry/log')
+const log = Log('my-file-name')
+log.debug('it works!')
+log.info('hey')
+log.warn('oh')
+log.error('oh no!')
+```
+
+The difference between an expected and unexpected error is that the first is
+generally caused by a user (e.g. wrong password) and the system knows how to
+respond, and the latter is caused by the system (e.g. there's no database) and
+the system doesn't know how to handle it.
 
 ## Installation
 ```sh
