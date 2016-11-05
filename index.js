@@ -24,7 +24,14 @@ function Merry (opts) {
 }
 
 Merry.prototype.router = function (opts, routes) {
-  opts = opts || {}
+  if (!routes) {
+    routes = opts
+    opts = {}
+  }
+
+  assert.equal(typeof opts, 'object', 'merry.router: opts should be a object')
+  assert.ok(Array.isArray(routes), 'merry.router: routes should be an array')
+
   opts = xtend(opts, { thunk: false })
 
   const self = this
