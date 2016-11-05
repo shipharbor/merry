@@ -1,47 +1,59 @@
 const serverRouter = require('server-router')
+const walk = require('server-router/walk')
 const serverSink = require('server-sink')
-const summary = require('server-summary')
 const assert = require('assert')
+const xtend = require('xtend')
 const bole = require('bole')
-const http = require('http')
 const pump = require('pump')
 
-module.exports = merry
+module.exports = Merry
 
-// Modular http framework
-// obj? -> null
-function merry (opts) {
+function Merry (opts) {
+  if (!(this instanceof Merry)) return new Merry(opts)
   opts = opts || {}
-
-  const port = opts.port || 8080
-  const logLevel = opts.logLevel || 'info'
 
   assert.equal(typeof opts, 'object', 'merry: opts should be an object')
 
-  bole.output({ level: logLevel, stream: process.stdout })
-  const _log = bole('merry')
-  var _router = null
+  bole.output({
+    level: opts.logLevel || 'info',
+    stream: opts.logStream || process.stdout
+  })
 
-  return {
-    router: createRouter,
-    start: start
+  this._router = null
+  this._log = bole('merry')
+}
+
+Merry.prototype.router = function (opts, routes) {
+  opts = opts || {}
+  opts = xtend(opts, { thunk: false })
+
+  const self = this
+
+  const router = serverRouter(opts, routes)
+  walk(router, wrap)
+  this._router = router
+
+  function wrap (route, handler) {
+    return function (params, req, res) {
+      handler(req, res, params, function (err, stream) {
+        if (err) {
+          res.statusCode = err.statusCode || res.statusCode || 500
+          if ((res.statusCode / 100) === 4) {
+            self._log.info(err)
+            return res.end(JSON.stringify({ message: err }))
+          } else {
+            self._log.error(err)
+            return res.end('{ "message": "server error" }')
+          }
+        }
+        const sink = serverSink(req, res, self._log.info)
+        pump(stream, sink)
+      })
+    }
   }
+}
 
-  // create a router
-  // (str, [[str, fn]..]) -> null
-  function createRouter (dft, routes) {
-    _router = serverRouter(dft, routes)
-  }
-
-  // start the server
-  // null -> null
-  function start () {
-    const server = http.createServer((req, res) => {
-      const sink = serverSink(req, res, _log.info)
-      console
-      pump(_router(req, res), sink)
-    })
-
-    server.listen(port, summary(server, _log.info))
-  }
+Merry.prototype.start = function () {
+  assert.ok(this._router, 'merry: router was not found. Did you run app.router() ?')
+  return this._router
 }
