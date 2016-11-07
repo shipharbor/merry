@@ -30,8 +30,10 @@ const listen = require('merry/listen')
 const string = require('merry/string')
 const notFound = require('merry/404')
 const error = require('merry/error')
+const Env = require('merry/env')
 const merry = require('merry')
 
+const env = Env({ PORT: 8080 })
 const app = merry()
 
 app.router({ default: '/404' }, [
@@ -50,7 +52,7 @@ app.router({ default: '/404' }, [
 ])
 
 const handler = app.start()
-listen(8080, handler)
+listen(env.PORT, handler)
 ```
 
 Run using:
@@ -104,6 +106,31 @@ not disclose any internal information in `4xx` type errors, as it can lead to
 serious security vulnerabilities. All errors in other ranges (typically `5xx`)
 will send back the message `'server error'` and are logged as loglevel
 `'error'`.
+
+## Configuration
+Generally there are two ways of passing configuration into an application.
+Through files and through command line arguments. In practice it turns out
+passing environment variables can be done with less friction than using files.
+Especially in siloed environments such as Docker and Kubernetes where mounting
+volumes can at times be tricky, but passing environment variables is trivial.
+
+Merry ships with an environment argument validator that checks the type of
+argument passed in, and optionally falls back to a default if no value is
+passed in. To set the (very common) `$PORT` variable to default to `8080` do:
+```js
+const Env = require('merry/env')
+const env = Env({ PORT: 8080 })
+console.log('port: ' + env.PORT)
+```
+
+And then from the CLI do:
+```sh
+node ./server.js
+// => port: 8080
+
+PORT=1234 node ./server.js
+// => port: 1234
+```
 
 ## JSON
 If `Object` and `Array` are the data primitives of JavaScript, JSON is the
@@ -202,6 +229,10 @@ Create a naive `/404` handler that can be passed into a path.
 ### log = merry/log(name)
 Create a new log client that forwards logs to the main `app`. See the [logging
 section](#logging) for more details.
+
+### log = merry/env(settings)
+Create a new configuration client that reads environment variables from
+`process.env` and validates them against configuration.
 
 ## Installation
 ```sh
