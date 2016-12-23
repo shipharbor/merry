@@ -59,33 +59,30 @@
 ## Usage
 Given the following `index.js`:
 ```js
-const listen = require('merry/listen')
-const string = require('merry/string')
-const notFound = require('merry/404')
-const error = require('merry/error')
-const Env = require('merry/env')
-const merry = require('merry')
+var merry = require('merry')
 
-const env = Env({ PORT: 8080 })
-const app = merry()
+var notFound = merry.notFound
+var error = merry.error
 
-app.router({ default: '/404' }, [
-  [ '/', (req, res, params, done) => {
-    done(null, string('hello world'))
+var env = merry.env({ PORT: 8080 })
+var app = merry()
+
+app.router([
+  [ '/', function (req, res, ctx, done) {
+    done(null, 'hello world')
   }],
-  [ '/error', (req, res, params, done) => {
+  [ '/error', function (req, res, ctx, done) {
     done(error(500, 'server error!'))
   }],
   ['/api', {
-    get: (req, res, params, done) => {
-      done(null, string('hello very explicit GET'))
+    get: function (req, res, ctx, done) {
+      done(null, 'hello very explicit GET')
     }
   }],
   [ '/404', notFound() ]
 ])
 
-const handler = app.start()
-listen(env.PORT, handler)
+app.listen(env.PORT)
 ```
 
 Run using:
@@ -94,7 +91,7 @@ $ node index.js | merry-pretty
 ```
 
 ## Logging
-Merry uses the `bole` logger under the hood. When you create a new `merry` app,
+Merry uses the `pino` logger under the hood. When you create a new `merry` app,
 we enable a log forwarder that by default prints all logs to `process.stdout`.
 
 To send a log, we must first create an instance of the logger. This is done by
@@ -291,4 +288,5 @@ $ npm install merry
 [9]: https://npmjs.org/package/merry
 [10]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square
 [11]: https://github.com/feross/standard
+[pino]: https://github.com/pinojs/pino
 [ndjson]: http://ndjson.org/

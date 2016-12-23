@@ -4,7 +4,7 @@
   "description": "Modular http framework",
   "main": "index.js",
   "bin": {
-    "merry-pretty": "./pretty.js"
+    "merry": "./pretty.js"
   },
   "scripts": {
     "deps": "dependency-check . && dependency-check . --extra --no-dev --entry error.js --entry env.js --entry json.js --entry listen.js --entry log.js --entry pretty.js --entry string.js",
@@ -24,12 +24,14 @@
     "bole": "^3.0.1",
     "envobj": "^1.0.2",
     "explain-error": "^1.0.3",
+    "fast-safe-stringify": "^1.1.3",
+    "from2": "^2.3.0",
     "from2-string": "^1.1.0",
-    "garnish": "^5.2.0",
+    "is-stream": "^1.1.0",
+    "pino": "^3.0.5",
     "pump": "^1.0.1",
     "server-router": "^4.0.0",
     "server-sink": "^1.0.0",
-    "server-summary": "^6.0.1",
     "xtend": "^4.0.1"
   },
   "devDependencies": {
