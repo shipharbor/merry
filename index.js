@@ -5,6 +5,7 @@ var fromString = require('from2-string')
 var serverSink = require('server-sink')
 var explain = require('explain-error')
 var isStream = require('is-stream')
+var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
@@ -16,6 +17,7 @@ var pump = require('pump')
 Merry.notFound = notFound
 Merry.error = error
 Merry.env = envobj
+Merry.cors = cors
 
 module.exports = Merry
 
@@ -138,4 +140,15 @@ function error (statusCode, message, err) {
 
   err.statusCode = statusCode
   return err
+}
+
+function cors (opts) {
+  var _cors = corsify(opts)
+  return function (handler) {
+    return function (req, res, ctx, done) {
+      _cors(function (req, res) {
+        handler(req, res, ctx, done)
+      })(req, res)
+    }
+  }
 }

@@ -200,6 +200,26 @@ registered in this was will be passed to the `params` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `params` as `{ bar: 'hello' }`.
 
+## CORS
+To support `Cross Origin Resource Sharing` we wrap [corsify][corsify] and
+expose it as `merry.cors`:
+
+```js
+var merry = require('merry')
+
+var cors = merry.cors({
+  'Access-Control-Allow-Methods': 'POST, GET'
+})
+
+var app = merry()
+app.router([
+  ['/verify', cors(function (req, res, ctx, done) {
+    done(null, 'all is well!')
+  })]
+])
+app.listen(8080)
+```
+
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
@@ -290,3 +310,4 @@ $ npm install merry
 [11]: https://github.com/feross/standard
 [pino]: https://github.com/pinojs/pino
 [ndjson]: http://ndjson.org/
+[corsify]: https://github.com/Raynos/corsify
