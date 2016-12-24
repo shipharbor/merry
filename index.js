@@ -149,7 +149,7 @@ function cors (opts) {
       var obj = {}
       var keys = Object.keys(handler)
 
-      assert.notEqual(keys.length, 1, 'merry.cors: we can only corsify a single method per endpoint')
+      assert.equal(keys.length, 1, 'merry.cors: we can only corsify a single method per endpoint')
 
       keys.forEach(function (key) {
         var _handler = toCors(handler[key])
