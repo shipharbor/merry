@@ -113,6 +113,12 @@ Merry.prototype._onerror = function () {
     console.error(err.stack)
     process.exit(1)
   })
+
+  process.once('unhandledRejection', function (err) {
+    self._log.fatal(err)
+    console.error(err.stack)
+    process.exit(1)
+  })
 }
 
 function notFound () {
