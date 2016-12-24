@@ -145,10 +145,30 @@ function error (statusCode, message, err) {
 function cors (opts) {
   var _cors = corsify(opts)
   return function (handler) {
-    return function (req, res, ctx, done) {
-      _cors(function (req, res) {
-        handler(req, res, ctx, done)
-      })(req, res)
+    if (typeof handler === 'object') {
+      var obj = {}
+      var keys = Object.keys(handler)
+
+      assert.notEqual(keys.length, 1, 'merry.cors: we can only corsify a single method per endpoint')
+
+      keys.forEach(function (key) {
+        var _handler = toCors(handler[key])
+        obj.options = _handler
+        obj[key] = _handler
+      })
+    } else {
+      var _handler = toCors(handler)
+      obj.options = _handler
+      obj.get = _handler
+    }
+
+    function toCors (handler) {
+      return function (req, res, ctx, done) {
+        var _handler = _cors(function (req, res) {
+          handler(req, res, ctx, done)
+        })
+        _handler(req, res)
+      }
     }
   }
 }
