@@ -9,7 +9,6 @@ var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
-var from = require('from2')
 var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
@@ -73,7 +72,7 @@ Merry.prototype.router = function (opts, routes) {
           res.setHeader('Content-Type', 'application/json')
           stream = fromString(stringify(val))
         } else if (typeof val === 'string') {
-          stream = from(val)
+          stream = fromString(val)
         } else {
           throw new Error('merry: cannot convert value ' + typeof val + ' to stream')
         }
