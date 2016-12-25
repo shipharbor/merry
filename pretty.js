@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const garnish = require('garnish')
+var pretty = require('pino/pretty')
 
 process.stdin
-  .pipe(garnish())
+  .pipe(pretty())
   .pipe(process.stdout)

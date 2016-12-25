@@ -59,52 +59,47 @@
 ## Usage
 Given the following `index.js`:
 ```js
-const listen = require('merry/listen')
-const string = require('merry/string')
-const notFound = require('merry/404')
-const error = require('merry/error')
-const Env = require('merry/env')
-const merry = require('merry')
+var merry = require('merry')
+var http = require('http')
 
-const env = Env({ PORT: 8080 })
-const app = merry()
+var notFound = merry.notFound
+var error = merry.error
 
-app.router({ default: '/404' }, [
-  [ '/', (req, res, params, done) => {
-    done(null, string('hello world'))
+var env = merry.env({ PORT: 8080 })
+var app = merry()
+
+app.router([
+  [ '/', function (req, res, ctx, done) {
+    done(null, 'hello world')
   }],
-  [ '/error', (req, res, params, done) => {
+  [ '/error', function (req, res, ctx, done) {
     done(error(500, 'server error!'))
   }],
   ['/api', {
-    get: (req, res, params, done) => {
-      done(null, string('hello very explicit GET'))
+    get: function (req, res, ctx, done) {
+      done(null, 'hello very explicit GET')
     }
   }],
   [ '/404', notFound() ]
 ])
 
-const handler = app.start()
-listen(env.PORT, handler)
+var server = http.createServer(app.start())
+server.listen(env.PORT)
 ```
 
 Run using:
 ```sh
-$ node index.js | merry-pretty
+$ node index.js | merry
 ```
 
 ## Logging
-Merry uses the `bole` logger under the hood. When you create a new `merry` app,
-we enable a log forwarder that by default prints all logs to `process.stdout`.
-
-To send a log, we must first create an instance of the logger. This is done by
-requireing the `merry/log` file, and instantiating it with a name. The name is
-used to help determine where the log was sent from, which is very helpful when
-debugging applications:
+Merry uses the `pino` logger under the hood. When you create a new `merry` app,
+we enable a log forwarder that by default prints all logs to `process.stdout`:
 ```js
-const Log = require('merry/log')
-const log = Log('some-filename')
-log.inf('logging!')
+var merry = require('merry')
+var app = merry()
+
+app.log.info('look at the logs!')
 ```
 
 There are different log levels that can be used. The possible log levels are:
@@ -112,15 +107,18 @@ There are different log levels that can be used. The possible log levels are:
   production
 - __info:__ used for transactional messages
 - __warn:__ used for expected errors
-- __error:__ used for unexpected (critical) errors
+- __error:__ used for unexpected errors
+- __fatal:__ used for critical errors that should terminate the process
 
 ```js
-const Log = require('merry/log')
-const log = Log('my-file-name')
-log.debug('it works!')
-log.info('hey')
-log.warn('oh')
-log.error('oh no!')
+var merry = require('merry')
+var app = merry()
+
+app.log.debug('it works!')
+app.log.info('hey')
+app.log.warn('oh')
+app.log.error('oh no!')
+app.log.fatal('send help')
 ```
 
 The difference between an expected and unexpected error is that the first is
@@ -129,12 +127,12 @@ respond, and the latter is caused by the system (e.g. there's no database) and
 the system doesn't know how to handle it.
 
 ## Error handling
-The `send(err, stream)` callback can either take an error or a stream. If an
+The `done(err, stream)` callback can either take an error or a stream. If an
 error has `.statusCode` property, that value will be used for `res.statusCode`.
 Else it'll use any status code that was set previously, and default to `500`.
 
 :warning: __If errors are in the 4xx range, the full error is returned to the
-client__ and the error will be logged as loglevel `'info'`. It's important to
+client__ and the error will be logged as loglevel `'warn'`. It's important to
 not disclose any internal information in `4xx` type errors, as it can lead to
 serious security vulnerabilities. All errors in other ranges (typically `5xx`)
 will send back the message `'server error'` and are logged as loglevel
@@ -151,8 +149,8 @@ Merry ships with an environment argument validator that checks the type of
 argument passed in, and optionally falls back to a default if no value is
 passed in. To set the (very common) `$PORT` variable to default to `8080` do:
 ```js
-const Env = require('merry/env')
-const env = Env({ PORT: 8080 })
+var merry = require('merry')
+var env = merry.env({ PORT: 8080 })
 console.log('port: ' + env.PORT)
 ```
 
@@ -167,18 +165,19 @@ PORT=1234 node ./server.js
 
 ## JSON
 If `Object` and `Array` are the data primitives of JavaScript, JSON is the
-primitive of APIs. To help create JSON there's `merry/json`. It sets the right
+primitive of APIs. To create JSON there's . It sets the right
 headers on `res` and efficiently turns JavaScript to JSON:
 ```js
-const json = require('merry/json')
-const merry = require('merry')
-const http = require('http')
+var merry = require('merry')
+var http = require('http')
 
-const app = merry()
-app.router(['/', (req, res, params, done) => {
-  done(null, json(req, res, { message: 'hello JSON' }))
+var app = merry()
+app.router(['/', function (req, res, ctx, done) {
+  done(null, { message: 'hello JSON' })
 }])
-http.createServer(app.start()).listen(8080)
+
+var server = http.createServer(app.start())
+server.listen(8080)
 ```
 
 ## Routing
@@ -188,8 +187,8 @@ structure under the hood. You don't need to worry about any of this though; all
 you need to know is that we've tested it and it's probably among the fastest
 methods out there. Routes look like this:
 ```js
-const merry = require('merry')
-const app = merry()
+var merry = require('merry')
+var app = merry()
 app.router([
   ['/', handleIndex],
   ['/foo', handleFoo, [
@@ -199,9 +198,29 @@ app.router([
 ```
 
 Partial routes can be set using the `':'` delimiter. Any route that's
-registered in this was will be passed to the `params` argument as a key. So
+registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
-in `params` as `{ bar: 'hello' }`.
+in `ctx` as `{ bar: 'hello' }`.
+
+## CORS
+To support `Cross Origin Resource Sharing` we wrap [corsify][corsify] and
+expose it as `merry.cors`:
+
+```js
+var merry = require('merry')
+
+var cors = merry.cors({
+  'Access-Control-Allow-Methods': 'POST, GET'
+})
+
+var app = merry()
+app.router([
+  ['/verify', cors(function (req, res, ctx, done) {
+    done(null, 'all is well!')
+  })]
+])
+app.listen(8080)
+```
 
 ## API
 ### app = merry(opts)
@@ -216,10 +235,11 @@ Register routes on the router. Take the following opts:
 - __default:__ (default: `'/404'`) Default route handler if no route matches
 
 #### routes
-Each route has a signature of `(req, res, params, done)`:
+Each route has a signature of `(req, res, ctx, done)`:
 - __req:__ the server's unmodified `req` object
 - __res:__ the server's unmodified `res` object
-- __params:__ the parameters picked up from the `router` using the `:route`
+- __ctx:__ an object that can contain values and methods. Includes `.params`
+  which are the parameters picked up from the `router` using the `:route`
   syntax in the route
 - __done:__ a handler with a signature of `(err, stream)`, that takes either an
   error or a stream. If an error is passed it sets a statusCode of `500` and
@@ -229,43 +249,54 @@ Each route has a signature of `(req, res, params, done)`:
 ### handler = app.start()
 Create a handler that can be passed directly into an `http` server.
 ```js
-const string = require('merry/string')
-const merry = require('merry')
-const http = require('http')
+var merry = require('merry')
+var http = require('http')
 
-const app = merry()
+var app = merry()
 app.router(['/', handleRoute])
 
-const handler = app.start()
-http.createHttpServer(handler).listen(8080)
+var handler = app.start()
+var server = http.createHttpServer()
+server.listen(8080)
 
-function handleRoute (req, res, params, done) {
-  done(null, string('hello planet'))
+function handleRoute (req, res, ctx, done) {
+  done(null, 'hello planet')
 }
 ```
 
-### string = merry/string(string)
-Create a `readableStream` from a string. Uses `from2-string` under the hood
+### app.listen()
+Start the application directly
+```js
+var merry = require('merry')
 
-### json = merry/json(req, res, object)
-Create a `readableStream` from an object. `req` and `res` must be passed in to
-set the appropriate headers. Uses `from2-string` under the hood
+var app = merry()
+app.router(['/', handleRoute])
+app.listen(8080)
 
-### error = merry/error(statusCode, message, err?)
+function handleRoute (req, res, ctx, done) {
+  done(null, 'hello planet')
+}
+```
+
+### error = app.error(statusCode, message, err?)
 Create an HTTP error with a statusCode and a message. By passing an erorr as
 the third argument it will wrap the error using `explain-error` to keep prior
 stack traces.
 
-### notFound = merry/404()
-Create a naive `/404` handler that can be passed into a path.
+### app.log.method(log)
+Send a log to the log output stream. See the [logging section](#logging) for
+more details.
 
-### log = merry/log(name)
-Create a new log client that forwards logs to the main `app`. See the [logging
-section](#logging) for more details.
-
-### log = merry/env(settings)
+### env = merry.env(settings)
 Create a new configuration client that reads environment variables from
 `process.env` and validates them against configuration.
+
+### notFound = merry.notFound()
+Create a naive `/404` handler that can be passed into a path.
+
+### routeHandler = merry.cors(handler)
+Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
+catch preflight requests.
 
 ## Installation
 ```sh
@@ -291,4 +322,6 @@ $ npm install merry
 [9]: https://npmjs.org/package/merry
 [10]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square
 [11]: https://github.com/feross/standard
+[pino]: https://github.com/pinojs/pino
 [ndjson]: http://ndjson.org/
+[corsify]: https://github.com/Raynos/corsify
