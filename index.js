@@ -156,6 +156,7 @@ function cors (opts) {
         obj[key] = _handler
       })
     } else {
+      var obj = {}
       var _handler = toCors(handler)
       obj.options = _handler
       obj.get = _handler
