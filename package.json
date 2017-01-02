@@ -36,7 +36,7 @@
   "devDependencies": {
     "dependency-check": "^2.5.1",
     "istanbul": "^0.4.2",
-    "standard": "^8.0.0",
+    "standard": "^8.3.0",
     "tape": "^4.6.2"
   }
 }
