@@ -26,7 +26,7 @@ function Merry (opts) {
 
   assert.equal(typeof opts, 'object', 'merry: opts should be an object')
 
-  this._log = pino(opts.logStream || process.stdout)
+  this.log = pino(opts.logStream || process.stdout)
   this._router = null
 }
 
@@ -57,10 +57,10 @@ Merry.prototype.router = function (opts, routes) {
         if (err) {
           res.statusCode = err.statusCode || res.statusCode || 500
           if ((res.statusCode / 100) === 4) {
-            self._log.warn(err)
+            self.log.warn(err)
             return res.end(JSON.stringify({ message: err }))
           } else {
-            self._log.error(err)
+            self.log.error(err)
             return res.end('{ "message": "server error" }')
           }
         }
@@ -79,7 +79,7 @@ Merry.prototype.router = function (opts, routes) {
 
         // TODO: remove the need for callback
         var sink = serverSink(req, res, function (msg) {
-          self._log.info(msg)
+          self.log.info(msg)
         })
         pump(stream, sink)
       })
@@ -98,7 +98,7 @@ Merry.prototype.listen = function (port) {
   var server = http.createServer(this._router)
 
   server.listen(port, function () {
-    self._log.info({
+    self.log.info({
       message: 'listening',
       port: server.address().port,
       env: process.env.NODE_ENV || 'undefined'
@@ -110,13 +110,13 @@ Merry.prototype._onerror = function () {
   var self = this
 
   process.once('uncaughtException', function (err) {
-    self._log.fatal(err)
+    self.log.fatal(err)
     console.error(err.stack)
     process.exit(1)
   })
 
   process.once('unhandledRejection', function (err) {
-    self._log.fatal(err)
+    self.log.fatal(err)
     console.error(err.stack)
     process.exit(1)
   })
@@ -144,8 +144,8 @@ function error (statusCode, message, err) {
 function cors (opts) {
   var _cors = corsify(opts)
   return function (handler) {
+    var obj = {}
     if (typeof handler === 'object') {
-      var obj = {}
       var keys = Object.keys(handler)
 
       assert.equal(keys.length, 1, 'merry.cors: we can only corsify a single method per endpoint')
@@ -156,11 +156,12 @@ function cors (opts) {
         obj[key] = _handler
       })
     } else {
-      var obj = {}
       var _handler = toCors(handler)
       obj.options = _handler
       obj.get = _handler
     }
+
+    return obj
 
     function toCors (handler) {
       return function (req, res, ctx, done) {
