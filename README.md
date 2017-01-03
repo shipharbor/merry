@@ -69,25 +69,37 @@ var env = merry.env({ PORT: 8080 })
 var app = merry()
 
 app.router([
-  [ '/', function (req, res, ctx, done) {
-    done(null, 'hello world')
-  }],
-  [ '/error', function (req, res, ctx, done) {
-    done(error(500, 'server error!'))
-  }],
-  ['/api', {
-    get: function (req, res, ctx, done) {
-      done(null, 'hello very explicit GET')
-    }
-  }],
+  [ '/', homePath ],
+  [ '/error', errorPath ],
+  [ '/api', {
+    put: apiPutPath,
+    get: apiGetPath
+  } ],
   [ '/404', notFound() ]
 ])
 
 var server = http.createServer(app.start())
 server.listen(env.PORT)
+
+function homePath (req, res, ctx, done) {
+  done(null, 'hello world')
+}
+
+function errorPath (req, res, ctx, done) {
+  done(null, 'hello world')
+}
+
+function apiGetPath (req, res, ctx, done) {
+  done(null, 'hello HTTP GET')
+}
+
+function apiPutPath (req, res, ctx, done) {
+  done(null, 'hello HTTP PUT')
+}
 ```
 
-Run using:
+The application will now start printing log messages to stdout. `merry` ships
+with a CLI tool called `merry` that formats the messages for humans:
 ```sh
 $ node index.js | merry
 ```
