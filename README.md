@@ -60,6 +60,7 @@
 Given the following `index.js`:
 ```js
 var merry = require('merry')
+var pump = require('pump')
 var http = require('http')
 
 var notFound = merry.notFound
@@ -94,7 +95,6 @@ function apiGetPath (req, res, ctx, done) {
 }
 
 function apiPutPath (req, res, ctx, done) {
-  done(null, 'hello HTTP PUT')
 }
 ```
 
@@ -213,6 +213,28 @@ Partial routes can be set using the `':'` delimiter. Any route that's
 registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
+
+## Request Body Parsers 
+
+
+```js
+var merry = require('merry')
+
+var app = merry()
+app.router([
+  [ '/api', {
+    put: jsonRoute 
+  } ],
+])
+
+function jsonRoute (req, res, ctx, done) {
+  merry.parse.json(req, function (err, json) {
+    if (err) return done(err)
+    ctx.json = json
+    done(null, 'done parsing json')
+  })
+}
+```
 
 ## CORS
 To support `Cross Origin Resource Sharing` we wrap [corsify][corsify] and
