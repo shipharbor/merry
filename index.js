@@ -1,5 +1,6 @@
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
+var fastJsonParse = require('fast-json-parse')
 var walk = require('server-router/walk')
 var fromString = require('from2-string')
 var serverSink = require('server-sink')
@@ -187,7 +188,7 @@ function cors (opts) {
 function parseJson (req, cb) {
   req.pipe(concat(function (buf) {
     try {
-      var json = JSON.parse(buf)
+      var json = fastJsonParse(buf)
     } catch (err) {
       return cb(explain(err, 'error parsing JSON'))
     }
