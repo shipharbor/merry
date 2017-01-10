@@ -4,6 +4,7 @@ var walk = require('server-router/walk')
 var fromString = require('from2-string')
 var serverSink = require('server-sink')
 var explain = require('explain-error')
+var concat = require('concat-stream')
 var isStream = require('is-stream')
 var corsify = require('corsify')
 var envobj = require('envobj')
@@ -17,6 +18,10 @@ Merry.notFound = notFound
 Merry.error = error
 Merry.env = envobj
 Merry.cors = cors
+Merry.parse = {
+  json: parseJson,
+  string: parseString
+}
 
 module.exports = Merry
 
@@ -28,11 +33,6 @@ function Merry (opts) {
 
   this.log = pino(opts.logStream || process.stdout)
   this._router = null
-  this.parse = {
-    json: parseJson,
-    string: parseString
-
-  }
 }
 
 Merry.prototype.router = function (opts, routes) {
