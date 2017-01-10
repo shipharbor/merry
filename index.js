@@ -185,24 +185,24 @@ function cors (opts) {
   }
 }
 
-function parseJson (req, cb) {
+function parseJson (req, res, cb) {
+  if (!cb) cb = res
   req.pipe(concat(handler), function (err) {
     if (err) return cb(explain(err, 'pipe error'))
   })
 
   function handler (buf) {
-    try {
-      var json = fastJsonParse(buf)
-    } catch (err) {
-      return cb(explain(err, 'merry.parse.json: error parsing JSON'))
+    var json = fastJsonParse(buf)
+    if (json.err) {
+      return cb(explain(json.err, 'merry.parse.json: error parsing JSON'))
     }
-
-    cb(null, json)
+    cb(null, json.value)
   }
 }
 
-function parseString (res, cb) {
-  pump(res, concat({ encoding: 'string' }, handler), function (err) {
+function parseString (req, res, cb) {
+  if (!cb) cb = res
+  pump(req, concat({ encoding: 'string' }, handler), function (err) {
     if (err) return cb(explain(err, 'pipe error'))
   })
 
