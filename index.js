@@ -107,6 +107,8 @@ Merry.prototype.listen = function (port, cb) {
     })
     cb()
   })
+
+  return server
 }
 
 Merry.prototype._onerror = function () {
