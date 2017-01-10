@@ -92,10 +92,12 @@ Merry.prototype.start = function () {
   return this._router
 }
 
-Merry.prototype.listen = function (port) {
+Merry.prototype.listen = function (port, cb) {
   assert.ok(this._router, 'merry.listen: router was not found. Did you run app.router() ?')
   var self = this
   var server = http.createServer(this._router)
+
+  cb = cb || noop
 
   server.listen(port, function () {
     self.log.info({
@@ -103,6 +105,7 @@ Merry.prototype.listen = function (port) {
       port: server.address().port,
       env: process.env.NODE_ENV || 'undefined'
     })
+    cb()
   })
 }
 
@@ -173,3 +176,5 @@ function cors (opts) {
     }
   }
 }
+
+function noop () {}
