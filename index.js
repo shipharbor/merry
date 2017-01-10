@@ -28,6 +28,11 @@ function Merry (opts) {
 
   this.log = pino(opts.logStream || process.stdout)
   this._router = null
+  this.parse = {
+    json: parseJson,
+    string: parseString
+
+  }
 }
 
 Merry.prototype.router = function (opts, routes) {
@@ -178,5 +183,19 @@ function cors (opts) {
     }
   }
 }
+
+function parseJson (req, cb) {
+  req.pipe(concat(function (buf) {
+    try {
+      var json = JSON.parse(buf)
+    } catch (err) {
+      return cb(explain(err, 'error parsing JSON'))
+    }
+
+    cb(null, json)
+  }))
+}
+
+function parseString () {}
 
 function noop () {}
