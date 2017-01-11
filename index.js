@@ -7,6 +7,7 @@ var serverSink = require('server-sink')
 var explain = require('explain-error')
 var concat = require('concat-stream')
 var isStream = require('is-stream')
+var mapLimit = require('map-limit')
 var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
@@ -155,8 +156,19 @@ function error (statusCode, message, err) {
 }
 
 function middleware (arr) {
+  assert.ok(Array.isArray(arr), 'merry.middleware: arr should be an array')
+  assert.ok(arr.length >= 1, 'merry.middleware: arr should contain at least one handler')
+
+  var final = arr.pop()
+
   return function (req, res, ctx, done) {
-    for (var i = 0, len = arr.length; i < len; i++) {
+    mapLimit(arr, 1, iterator, function (err) {
+      if (err) return done(err)
+      final(req, res, ctx, done)
+    })
+
+    function iterator (cb, done) {
+      cb(req, res, ctx, done)
     }
   }
 }
