@@ -7,6 +7,7 @@ var serverSink = require('server-sink')
 var explain = require('explain-error')
 var concat = require('concat-stream')
 var isStream = require('is-stream')
+var mapLimit = require('map-limit')
 var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
@@ -15,6 +16,7 @@ var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
+Merry.middleware = middleware
 Merry.notFound = notFound
 Merry.error = error
 Merry.env = envobj
@@ -80,15 +82,16 @@ Merry.prototype.router = function (opts, routes) {
           stream = fromString(stringify(val))
         } else if (typeof val === 'string') {
           stream = fromString(val)
-        } else {
-          throw new Error('merry: cannot convert value ' + typeof val + ' to stream')
         }
-
         // TODO: remove the need for callback
         var sink = serverSink(req, res, function (msg) {
           self.log.info(msg)
         })
-        pump(stream, sink)
+        if (stream) {
+          pump(stream, sink)
+        } else {
+          sink.end()
+        }
       })
     }
   }
@@ -151,6 +154,24 @@ function error (statusCode, message, err) {
 
   err.statusCode = statusCode
   return err
+}
+
+function middleware (arr) {
+  assert.ok(Array.isArray(arr), 'merry.middleware: arr should be an array')
+  assert.ok(arr.length >= 1, 'merry.middleware: arr should contain at least one handler')
+
+  var final = arr.pop()
+
+  return function (req, res, ctx, done) {
+    mapLimit(arr, 1, iterator, function (err) {
+      if (err) return done(err)
+      final(req, res, ctx, done)
+    })
+
+    function iterator (cb, done) {
+      cb(req, res, ctx, done)
+    }
+  }
 }
 
 function cors (opts) {

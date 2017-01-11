@@ -214,6 +214,30 @@ registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
 
+## Middleware
+You can set up a middleware set of functions to handle a request. Only the last
+handler will propogate data, all others handle errors.
+
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var app = merry()
+app.router([
+  ['/foo', mw([otherHandler, myCoolEndpoint])]
+])
+
+function otherHandler (req, res, ctx, done) {
+  ctx.foo = 'bar'
+  done()
+}
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('woah look at me, shiny code', ctx.foo)
+  done(null, 'its so shiny')
+}
+```
+
 ## Body Parsing
 To make it easy to operate on common data types, we've included body parsers.
 These functions take the `req` stream, concatenate it and return the resulting
@@ -340,6 +364,17 @@ Create a naive `/404` handler that can be passed into a path.
 ### routeHandler = merry.cors(handler)
 Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
 catch preflight requests.
+
+### merry.middleware(handlers)
+Takes an array of handler functions. Each handler has a signature of
+`handler(req, res, ctx, done)`. `ctx` is an object onto which data can be
+attached. The `ctx` object is shared from one handler onto the other. If an
+error occurs, it can be passed into `done(err)`. When a middleware handler is
+done executing, it should call `done()`.
+
+The last handler in the array of handlers is expected to send back a response:
+the `done()` function has a signature of
+`done(err|null, null|stream|string|object)`.
 
 ### merry.parse.json(req, handler(err, object))
 Parse json in request body. Returns an object.
