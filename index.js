@@ -82,15 +82,16 @@ Merry.prototype.router = function (opts, routes) {
           stream = fromString(stringify(val))
         } else if (typeof val === 'string') {
           stream = fromString(val)
-        } else {
-          throw new Error('merry: cannot convert value ' + typeof val + ' to stream')
         }
-
         // TODO: remove the need for callback
         var sink = serverSink(req, res, function (msg) {
           self.log.info(msg)
         })
-        pump(stream, sink)
+        if (stream) {
+          pump(stream, sink)
+        } else {
+          sink.end()
+        }
       })
     }
   }

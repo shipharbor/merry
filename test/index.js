@@ -105,6 +105,18 @@ tape('parsers', function (t) {
   })
 })
 
+tape('encoders', function (t) {
+  t.test('should exit fine if no data is passed', function (t) {
+    t.plan(2)
+    var app = merry({ logStream: devnull() })
+    app.router(['/', function (req, res, ctx, done) {
+      done()
+    }])
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+})
+
 tape('middleware', function (t) {
   t.test('should handle the happy case', function (t) {
     t.plan(5)
@@ -127,7 +139,7 @@ tape('middleware', function (t) {
     function finalHandler (req, res, ctx, done) {
       t.equal(ctx.foo, 'bar', 'was equal')
       t.equal(ctx.bin, 'baz', 'was equal')
-      done(null, '')
+      done()
     }
 
     var server = http.createServer(app.start())
