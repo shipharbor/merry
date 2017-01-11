@@ -175,7 +175,7 @@ PORT=1234 node ./server.js
 // => port: 1234
 ```
 
-## JSON
+## Encoding 
 If `Object` and `Array` are the data primitives of JavaScript, JSON is the
 primitive of APIs. To create JSON there's . It sets the right
 headers on `res` and efficiently turns JavaScript to JSON:
@@ -340,6 +340,13 @@ Create a naive `/404` handler that can be passed into a path.
 ### routeHandler = merry.cors(handler)
 Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
 catch preflight requests.
+
+### merry.parse.json(req, handler(err, object))
+Parse json in request body. Returns an object.
+
+### merry.parse.text(req, handler(err, text))
+Parse text in request body. Returns a string. You can alternativel use an alias 
+of `merry.parse.string`.
 
 ## Installation
 ```sh
