@@ -146,7 +146,32 @@ tape('middleware', function (t) {
     performGet(server, t)
   })
 
-  t.test('should handle the error case')
+  t.test('should handle the error case', function (t) {
+    t.plan(2)
+    var app = merry({ logStream: devnull() })
+    var mw = merry.middleware
+
+    app.router(['/', mw([ errorMaker, finalHandler ])])
+
+    function errorMaker (req, res, ctx, done) {
+      done(new Error('oi mate'))
+    }
+
+    function finalHandler (req, res, ctx, done) {
+      done()
+    }
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var uri = 'http://localhost:' + port + '/'
+      request(uri, function (err, req) {
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 500, 'status is not ok')
+        server.close()
+      })
+    })
+  })
 })
 
 function performGet (server, t, cb) {
