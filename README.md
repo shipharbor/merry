@@ -214,26 +214,35 @@ registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
 
-## Request Body Parsers 
-
+## Body Parsing
+To make it easy to operate on common data types, we've included body parsers.
+These functions take the `req` stream, concatenate it and return the resulting
+data, or an error if it didn't succeed. Check out [#parsers](#parsers) for more
+details.
 
 ```js
 var merry = require('merry')
-
 var app = merry()
 app.router([
-  [ '/api', {
-    put: jsonRoute 
+  [ '/json', {
+    put: function (req, res, ctx, done) {
+      merry.parse.json(req, function (err, json) {
+        if (err) return done(err)
+        ctx.json = json
+        done(null, 'done parsing json')
+      })
+    }
   } ],
+  [ '/string', {
+    put: function (req, res, ctx, done) {
+      merry.parse.string(req, function (err, string) {
+        if (err) return done(err)
+        ctx.string = string
+        done(null, 'done parsing string')
+      })
+    }
+  } ]
 ])
-
-function jsonRoute (req, res, ctx, done) {
-  merry.parse.json(req, function (err, json) {
-    if (err) return done(err)
-    ctx.json = json
-    done(null, 'done parsing json')
-  })
-}
 ```
 
 ## CORS
