@@ -21,6 +21,7 @@ Merry.env = envobj
 Merry.cors = cors
 Merry.parse = {
   json: parseJson,
+  text: parseString,
   string: parseString
 }
 
