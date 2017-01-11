@@ -62,7 +62,7 @@ Merry.prototype.router = function (opts, routes) {
       // val should ideally be a stream already, but if it's not we got you bae
       handler(req, res, ctx, function (err, val) {
         if (err) {
-          res.statusCode = err.statusCode || res.statusCode || 500
+          res.statusCode = err.statusCode || (res.statusCode >= 400 ? res.statusCode : 500)
           if ((res.statusCode / 100) === 4) {
             self.log.warn(err)
             return res.end(JSON.stringify({ message: err }))
