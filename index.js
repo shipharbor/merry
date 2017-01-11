@@ -15,6 +15,7 @@ var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
+Merry.middleware = middleware
 Merry.notFound = notFound
 Merry.error = error
 Merry.env = envobj
@@ -151,6 +152,13 @@ function error (statusCode, message, err) {
 
   err.statusCode = statusCode
   return err
+}
+
+function middleware (arr) {
+  return function (req, res, ctx, done) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+    }
+  }
 }
 
 function cors (opts) {
