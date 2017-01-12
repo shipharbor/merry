@@ -174,6 +174,54 @@ tape('middleware', function (t) {
   })
 })
 
+tape('middleware.schema', function (t) {
+  t.test('should validate input types', function (t) {
+    t.plan(2)
+    var mw = merry.middleware
+    t.throws(mw.schema.bind(null, 123), /string/)
+    t.throws(mw.schema.bind(null, 123), /object/)
+  })
+
+  t.test('should validate a schema', function (t) {
+    t.plan(5)
+    var app = merry({ logStream: devnull() })
+    var mw = merry.middleware
+
+    var schema = `
+      {
+        "required": true,
+        "type": "object",
+        "properties": {
+          "hello": {
+            "required": true,
+            "type": "string"
+          }
+        }
+      }
+    `
+
+    app.router(['/', mw([ mw.schema(schema), handler ])])
+
+    function handler (req, res, ctx, done) {
+      console.log(ctx.body)
+      done()
+    }
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var uri = 'http://localhost:' + port + '/'
+      request(uri, function (err, req) {
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 200, 'status is not ok')
+        server.close()
+      })
+    })
+  })
+
+  t.test('should return a 4xx error if a schema is invalid')
+})
+
 function performGet (server, t, cb) {
   cb = cb || noop
   server.listen(function () {
