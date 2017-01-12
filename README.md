@@ -292,6 +292,7 @@ app.listen(8080)
 ## JSON Schema
 One of the most common things for your code to consume is probably going to be 
 JSON. The problem is that it doesn't always come back in the nice format you 
+<<<<<<< HEAD
 might need. But we gotchu: the `middleware` portion of Merry validates that
 for you. `middleware.schema` takes in a JSON schema and validates the request 
 body against it. 
