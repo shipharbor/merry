@@ -175,7 +175,7 @@ PORT=1234 node ./server.js
 // => port: 1234
 ```
 
-## Encoding 
+## Encoding
 If `Object` and `Array` are the data primitives of JavaScript, JSON is the
 primitive of APIs. To create JSON there's . It sets the right
 headers on `res` and efficiently turns JavaScript to JSON:
@@ -290,12 +290,11 @@ app.listen(8080)
 ```
 
 ## JSON Schema
-One of the most common things for your code to consume is probably going to be 
-JSON. The problem is that it doesn't always come back in the nice format you 
-<<<<<<< HEAD
+One of the most common things for your code to consume is probably going to be
+JSON. The problem is that it doesn't always come back in the nice format you
 might need. But we gotchu: the `middleware` portion of Merry validates that
-for you. `middleware.schema` takes in a JSON schema and validates the request 
-body against it. 
+for you. `middleware.schema` takes in a JSON schema and validates the request
+body against it.
 
 ```js
 var merry = require('merry')
@@ -312,7 +311,7 @@ var mySchema = `
       }
     }
   }
-` 
+`
 
 var app = merry()
 app.router([
@@ -420,7 +419,7 @@ the `res` against the schema, and attach it to `ctx.body` as part of middleware.
 Parse JSON in request body. Returns an object.
 
 ### merry.parse.text(req, handler(err, text))
-Parse text in request body. Returns a string. You can alternativel use an alias 
+Parse text in request body. Returns a string. You can alternativel use an alias
 of `merry.parse.string`.
 
 ## Installation
