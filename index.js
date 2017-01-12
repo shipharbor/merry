@@ -178,6 +178,21 @@ function middleware (arr) {
   }
 }
 
+function schemaMiddleware (schema) {
+  assert.ok(typeof schema === 'string' || typeof schema === 'object', 'middleware.schema: schema should be type string or type object')
+  var validate = isMyJsonValid(schema)
+
+  return function (req, res, ctx, done) {
+    parseJson(req, function (err, json) {
+      if (err) return done(explain(err, 'error validating error'))
+      validate(json)
+      if (validate.errors) return done(validate.errors)
+      ctx.body = json
+      done()
+    })
+  }
+}
+
 function cors (opts) {
   var _cors = corsify(opts)
   return function (handler) {
@@ -234,21 +249,6 @@ function parseString (req, res, cb) {
 
   function handler (str) {
     cb(null, str)
-  }
-}
-
-function schemaMiddleware (schema) {
-  assert.ok(typeof schema === 'string' || typeof schema === 'object', 'middleware.schema: schema should be type string or type object')
-  var validate = isMyJsonValid(schema)
-
-  return function (req, res, ctx, done) {
-    parseJson(req, function (err, json) {
-      if (err) return done(explain(err, 'error validating error'))
-      validate(json)
-      if (validate.errors) return done(validate.errors)
-      ctx.body = json
-      done()
-    })
   }
 }
 

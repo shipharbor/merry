@@ -183,7 +183,7 @@ tape('middleware.schema', function (t) {
   })
 
   t.test('should validate a schema', function (t) {
-    t.plan(5)
+    t.plan(3)
     var app = merry({ logStream: devnull() })
     var mw = merry.middleware
 
@@ -200,10 +200,13 @@ tape('middleware.schema', function (t) {
       }
     `
 
-    app.router(['/', mw([ mw.schema(schema), handler ])])
+    app.router(['/', {
+      'put': mw([ mw.schema(schema), handler ])
+    }])
 
     function handler (req, res, ctx, done) {
-      console.log(ctx.body)
+      var expected = { hello: 'butts' }
+      t.deepEqual(ctx.body, expected, 'body matches expected')
       done()
     }
 
@@ -211,15 +214,53 @@ tape('middleware.schema', function (t) {
     server.listen(function () {
       var port = getPort(server)
       var uri = 'http://localhost:' + port + '/'
-      request(uri, function (err, req) {
+      var req = request.put(uri, function (err, req) {
         t.ifError(err, 'no err')
-        t.equal(req.statusCode, 200, 'status is not ok')
+        t.equal(req.statusCode, 200, 'status is ok')
         server.close()
       })
+      req.end(JSON.stringify({hello: 'butts'}))
     })
   })
 
-  t.test('should return a 4xx error if a schema is invalid')
+  t.test('should return a 4xx error if a schema is invalid', function (t) {
+    t.plan(3)
+    var app = merry({ logStream: devnull() })
+    var mw = merry.middleware
+
+    var schema = `
+      {
+        "required": true,
+        "type": "object",
+        "properties": {
+          "hello": {
+            "required": true,
+            "type": "string"
+          }
+        }
+      }
+    `
+
+    app.router(['/', {
+      'put': mw([ mw.schema(schema), handler ])
+    }])
+
+    function handler (req, res, ctx, done) {
+      done()
+    }
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var uri = 'http://localhost:' + port + '/'
+      var req = request.put(uri, function (err, req, body) {
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 400, 'status is not ok')
+        server.close()
+      })
+      req.end(JSON.stringify({hello: 123}))
+    })
+  })
 })
 
 function performGet (server, t, cb) {
