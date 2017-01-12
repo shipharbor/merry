@@ -289,6 +289,41 @@ app.router([
 app.listen(8080)
 ```
 
+## JSON Schema
+One of the most common things for your code to consume is probably going to be 
+JSON. The problem is that it doesn't always come back in the nice format you 
+might need. But we gotchu: the `middleware` portion of Merry validates that
+for you. `middleware.schema` takes in a JSON schema and validates the request 
+body against it. 
+
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var mySchema = `
+  {
+    "required": true,
+    "type": "object",
+    "properties": {
+      "hello": {
+        "required": true,
+        "type": "string"
+      }
+    }
+  }
+` 
+
+var app = merry()
+app.router([
+  ['/foo', mw([mw.schema(mySchema), myCoolEndpoint])]
+])
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('hot code bod', ctx.body)
+  done(null, 'success!')
+}
+```
+
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
@@ -376,8 +411,12 @@ The last handler in the array of handlers is expected to send back a response:
 the `done()` function has a signature of
 `done(err|null, null|stream|string|object)`.
 
+### middleware.schema(string)
+Takes a JSON string to validate the response against. It will parse and validate
+the `res` against the schema, and attach it to `ctx.body` as part of middleware.
+
 ### merry.parse.json(req, handler(err, object))
-Parse json in request body. Returns an object.
+Parse JSON in request body. Returns an object.
 
 ### merry.parse.text(req, handler(err, text))
 Parse text in request body. Returns a string. You can alternativel use an alias 
