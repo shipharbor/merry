@@ -2,8 +2,8 @@ var isMyJsonValid = require('is-my-json-valid')
 var fastJsonParse = require('fast-json-parse')
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
-var walk = require('server-router/walk')
 var fromString = require('from2-string')
+var walk = require('server-router/walk')
 var serverSink = require('server-sink')
 var explain = require('explain-error')
 var concat = require('concat-stream')
@@ -13,12 +13,12 @@ var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
+var boom = require('boom')
 var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
 Merry.notFound = notFound
-Merry.error = error
 Merry.env = envobj
 Merry.cors = cors
 
@@ -30,6 +30,9 @@ Merry.parse = {
 
 Merry.middleware = middleware
 middleware.schema = schemaMiddleware
+
+Merry.error = createError
+Merry.error.wrap = wrapError
 
 module.exports = Merry
 
@@ -68,14 +71,17 @@ Merry.prototype.router = function (opts, routes) {
       // val should ideally be a stream already, but if it's not we got you bae
       handler(req, res, ctx, function (err, val) {
         if (err) {
-          res.statusCode = err.statusCode || (res.statusCode >= 400 ? res.statusCode : 500)
-          if ((res.statusCode / 100) === 4) {
-            self.log.warn(err)
-            return res.end(JSON.stringify({ message: err }))
-          } else {
-            self.log.error(err)
-            return res.end('{ "message": "server error" }')
-          }
+          if (!err.isBoom) err = wrapError(err)
+
+          var payload = err.output.payload
+          if (err.data) payload.data = err.data
+          var body = stringify(payload)
+
+          var statusCode = err.output.statusCode ||
+            (res.statusCode >= 400 ? res.statusCode : 500)
+
+          res.statusCode = statusCode
+          res.end(body)
         }
 
         var stream = null
@@ -142,22 +148,37 @@ Merry.prototype._onerror = function () {
 }
 
 function notFound () {
+  var err = createError({
+    statusCode: 404,
+    message: 'not found'
+  })
+
   return function (req, res, params, done) {
-    res.statusCode = 404
-    done(null, fromString('{ "message": "not found" }'))
+    done(err)
   }
 }
 
-function error (statusCode, message, err) {
-  assert.equal(typeof statusCode, 'number', 'merry.error: statusCode should be a number')
-  assert.equal(typeof message, 'string', 'merry.error: message should be a string')
+function createError (opts) {
+  assert.equal(typeof opts, 'object', 'merry.error: opts should be type object')
+  assert.equal(typeof opts.statusCode, 'number', 'merry.error: statusCode should be type number')
 
-  err = (err)
-    ? explain(err, message)
-    : new Error(message)
+  var statusCode = opts.statusCode
+  var message = opts.message
+  var data = opts.data
 
-  err.statusCode = statusCode
-  return err
+  return boom.create(statusCode, message, data)
+}
+
+function wrapError (err, opts) {
+  opts = opts || {}
+
+  assert.equal(typeof err, 'object', 'merry.wrapError: err should be type object')
+  assert.equal(typeof opts, 'object', 'merry.wrapError: opts should be type object')
+
+  var statusCode = opts.statusCode
+  var message = opts.message
+
+  return boom.wrap(err, statusCode, message)
 }
 
 function middleware (arr) {
@@ -185,13 +206,21 @@ function schemaMiddleware (schema) {
   return function (req, res, ctx, done) {
     parseJson(req, function (err, json) {
       if (err) {
-        res.statusCode = 400
-        return done(explain(err, 'error validating error'))
+        var parseErr = createError({
+          message: 'body is not valid JSON',
+          statusCode: 400
+        })
+        return done(parseErr)
       }
       validate(json)
       if (validate.errors) {
         res.statusCode = 400
-        return done(validate.errors)
+        var validationErr = createError({
+          message: 'error validating JSON',
+          statusCode: 400,
+          data: validate.errors
+        })
+        return done(validationErr)
       }
       ctx.body = json
       done()

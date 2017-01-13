@@ -223,47 +223,52 @@ tape('middleware.schema', function (t) {
     })
   })
 
-  // t.test('should return a 4xx error if json is invalid', function (t) {
-  //   t.plan(2)
-  //   var app = merry({ logStream: devnull() })
-  //   var mw = merry.middleware
+  t.test('should return a 4xx error if json is invalid', function (t) {
+    t.plan(3)
+    var app = merry({ logStream: devnull() })
+    var mw = merry.middleware
 
-  //   var schema = `
-  //     {
-  //       "required": true,
-  //       "type": "object",
-  //       "properties": {
-  //         "hello": {
-  //           "required": true,
-  //           "type": "string"
-  //         }
-  //       }
-  //     }
-  //   `
+    var schema = `
+      {
+        "required": true,
+        "type": "object",
+        "properties": {
+          "hello": {
+            "required": true,
+            "type": "string"
+          }
+        }
+      }
+    `
 
-  //   app.router(['/', {
-  //     'put': mw([ mw.schema(schema), handler ])
-  //   }])
+    app.router(['/', {
+      'put': mw([ mw.schema(schema), handler ])
+    }])
 
-  //   function handler (req, res, ctx, done) {
-  //     done()
-  //   }
+    function handler (req, res, ctx, done) {
+      done()
+    }
 
-  //   var server = http.createServer(app.start())
-  //   server.listen(function () {
-  //     var port = getPort(server)
-  //     var uri = 'http://localhost:' + port + '/'
-  //     var req = request.put(uri, function (err, req, body) {
-  //       t.ifError(err, 'no err')
-  //       t.equal(req.statusCode, 400, 'status is not ok')
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var uri = 'http://localhost:' + port + '/'
+      var req = request.put(uri, function (err, req, body) {
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 400, 'status is not ok')
 
-  //       var expected = {}
-  //       t.deepEqual(JSON.parse(body), expected, 'body was expected')
-  //       server.close()
-  //     })
-  //     req.end('beepboopdefnotjson1234345')
-  //   })
-  // })
+        var expected = {
+          error: 'Bad Request',
+          message: 'body is not valid JSON',
+          statusCode: 400
+        }
+
+        t.deepEqual(JSON.parse(body), expected, 'body was expected')
+        server.close()
+      })
+      req.end('beepboopdefnotjson1234345')
+    })
+  })
 
   t.test('should return a 4xx error if schema does not match', function (t) {
     t.plan(3)
@@ -300,10 +305,14 @@ tape('middleware.schema', function (t) {
         t.equal(req.statusCode, 400, 'status is not ok')
 
         var expected = {
-          message: [{
+          data: [{
             field: 'data.hello',
             message: 'is the wrong type'
-          }]
+          }],
+          error: 'Bad Request',
+          message: 'error validating JSON',
+          statusCode: 400
+
         }
         t.deepEqual(JSON.parse(body), expected, 'body was expected')
         server.close()
