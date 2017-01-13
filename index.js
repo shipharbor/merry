@@ -2,8 +2,8 @@ var isMyJsonValid = require('is-my-json-valid')
 var fastJsonParse = require('fast-json-parse')
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
-var walk = require('server-router/walk')
 var fromString = require('from2-string')
+var walk = require('server-router/walk')
 var serverSink = require('server-sink')
 var explain = require('explain-error')
 var concat = require('concat-stream')
@@ -13,12 +13,12 @@ var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
+var boom = require('boom')
 var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
 Merry.notFound = notFound
-Merry.error = error
 Merry.env = envobj
 Merry.cors = cors
 
@@ -30,6 +30,9 @@ Merry.parse = {
 
 Merry.middleware = middleware
 middleware.schema = schemaMiddleware
+
+Merry.error = error
+error.wrap = wrapError
 
 module.exports = Merry
 
@@ -148,16 +151,28 @@ function notFound () {
   }
 }
 
-function error (statusCode, message, err) {
+// internal done function takes in an error object
+// can be: a boom instance (isBoom) || a raw error
+// send msg, status code, error(http status message) back to the client
+
+// need to add fields to above response as a key/value to boom object
+
+// merry.error always takes an opts object
+// with statusCode, message, and err
+
+function error (opts) {
+  var statusCode = opts.statusCode
+  var message = opts.message
+  var data = opts.data
+
   assert.equal(typeof statusCode, 'number', 'merry.error: statusCode should be a number')
   assert.equal(typeof message, 'string', 'merry.error: message should be a string')
 
-  err = (err)
-    ? explain(err, message)
-    : new Error(message)
+  return boom.create(statusCode, message, data)
+}
 
-  err.statusCode = statusCode
-  return err
+function wrapError (error, statusCode, message) {
+  return boom.wrap(error, statusCode, message)
 }
 
 function middleware (arr) {
