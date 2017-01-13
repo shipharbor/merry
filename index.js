@@ -184,9 +184,15 @@ function schemaMiddleware (schema) {
 
   return function (req, res, ctx, done) {
     parseJson(req, function (err, json) {
-      if (err) return done(explain(err, 'error validating error'))
+      if (err) {
+        res.statusCode = 400
+        return done(explain(err, 'error validating error'))
+      }
       validate(json)
-      if (validate.errors) return done(validate.errors)
+      if (validate.errors) {
+        res.statusCode = 400
+        return done(validate.errors)
+      }
       ctx.body = json
       done()
     })
