@@ -1,3 +1,4 @@
+var isMyJsonValid = require('is-my-json-valid')
 var fastJsonParse = require('fast-json-parse')
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
@@ -16,16 +17,19 @@ var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
-Merry.middleware = middleware
 Merry.notFound = notFound
 Merry.error = error
 Merry.env = envobj
 Merry.cors = cors
+
 Merry.parse = {
   json: parseJson,
   text: parseString,
   string: parseString
 }
+
+Merry.middleware = middleware
+middleware.schema = schemaMiddleware
 
 module.exports = Merry
 
@@ -171,6 +175,27 @@ function middleware (arr) {
     function iterator (cb, done) {
       cb(req, res, ctx, done)
     }
+  }
+}
+
+function schemaMiddleware (schema) {
+  assert.ok(typeof schema === 'string' || typeof schema === 'object', 'middleware.schema: schema should be type string or type object')
+  var validate = isMyJsonValid(schema)
+
+  return function (req, res, ctx, done) {
+    parseJson(req, function (err, json) {
+      if (err) {
+        res.statusCode = 400
+        return done(explain(err, 'error validating error'))
+      }
+      validate(json)
+      if (validate.errors) {
+        res.statusCode = 400
+        return done(validate.errors)
+      }
+      ctx.body = json
+      done()
+    })
   }
 }
 
