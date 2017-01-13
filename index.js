@@ -31,8 +31,8 @@ Merry.parse = {
 Merry.middleware = middleware
 middleware.schema = schemaMiddleware
 
-Merry.error = error
-error.wrap = wrapError
+Merry.error = createError
+Merry.error.wrap = wrapError
 
 module.exports = Merry
 
@@ -71,14 +71,17 @@ Merry.prototype.router = function (opts, routes) {
       // val should ideally be a stream already, but if it's not we got you bae
       handler(req, res, ctx, function (err, val) {
         if (err) {
-          res.statusCode = err.statusCode || (res.statusCode >= 400 ? res.statusCode : 500)
-          if ((res.statusCode / 100) === 4) {
-            self.log.warn(err)
-            return res.end(JSON.stringify({ message: err }))
-          } else {
-            self.log.error(err)
-            return res.end('{ "message": "server error" }')
-          }
+          if (!err.isBoom) err = wrapError(err)
+
+          var payload = err.output.payload
+          if (err.data) payload.data = err.data
+          var body = stringify(payload)
+
+          var statusCode = err.output.statusCode ||
+            (res.statusCode >= 400 ? res.statusCode : 500)
+
+          res.statusCode = statusCode
+          res.end(body)
         }
 
         var stream = null
@@ -160,19 +163,27 @@ function notFound () {
 // merry.error always takes an opts object
 // with statusCode, message, and err
 
-function error (opts) {
+function createError (opts) {
+  assert.equal(typeof opts, 'object', 'merry.error: opts should be type object')
+  assert.equal(typeof opts.statusCode, 'number', 'merry.error: statusCode should be type number')
+
   var statusCode = opts.statusCode
   var message = opts.message
   var data = opts.data
 
-  assert.equal(typeof statusCode, 'number', 'merry.error: statusCode should be a number')
-  assert.equal(typeof message, 'string', 'merry.error: message should be a string')
-
   return boom.create(statusCode, message, data)
 }
 
-function wrapError (error, statusCode, message) {
-  return boom.wrap(error, statusCode, message)
+function wrapError (err, opts) {
+  opts = opts || {}
+
+  assert.equal(typeof err, 'object', 'merry.wrapError: err should be type object')
+  assert.equal(typeof opts, 'object', 'merry.wrapError: opts should be type object')
+
+  var statusCode = opts.statusCode
+  var message = opts.message
+
+  return boom.wrap(err, statusCode, message)
 }
 
 function middleware (arr) {
@@ -206,7 +217,12 @@ function schemaMiddleware (schema) {
       validate(json)
       if (validate.errors) {
         res.statusCode = 400
-        return done(validate.errors)
+        var validationErr = createError({
+          message: 'error validating JSON',
+          statusCode: 400,
+          data: validate.errors
+        })
+        return done(validationErr)
       }
       ctx.body = json
       done()
