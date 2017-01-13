@@ -344,9 +344,8 @@ Each route has a signature of `(req, res, ctx, done)`:
   which are the parameters picked up from the `router` using the `:route`
   syntax in the route
 - __done:__ a handler with a signature of `(err, stream)`, that takes either an
-  error or a stream. If an error is passed it sets a statusCode of `500` and
-  prints out the error to `stdout` and sends a `'server error'` reply. If a
-  stream is passed it pipes the stream to `res` until it is done.
+  error or a stream. If a stream is passed it pipes the stream to `res` until
+  it is done.
 
 ### handler = app.start()
 Create a handler that can be passed directly into an `http` server.
@@ -380,10 +379,17 @@ function handleRoute (req, res, ctx, done) {
 }
 ```
 
-### error = app.error(statusCode, message, err?)
-Create an HTTP error with a statusCode and a message. By passing an erorr as
-the third argument it will wrap the error using `explain-error` to keep prior
-stack traces.
+### error = merry.error(obj)
+Create a new HTTP error from an object. Expects a `.statusCode` and a `.message`
+property. Optionally it can also take a `.data` property to send extra data to
+the client. The entire error is logg when passed into `send(error)`, but only
+`statusCode`, `message` and `data` are sent to the client.
+
+### error = merry.wrap(err, [obj])
+Convert an `Error` object into an HTTP error. Optionally takes a second
+argument which can contain the properties `.statusCode` and `.message`. Use
+this method to turn internal errors (e.g. the database returned an error) into
+messages that you can send back to the client without leaking extra data.
 
 ### app.log.method(log)
 Send a log to the log output stream. See the [logging section](#logging) for

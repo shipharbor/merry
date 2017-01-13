@@ -148,20 +148,15 @@ Merry.prototype._onerror = function () {
 }
 
 function notFound () {
+  var err = createError({
+    statusCode: 404,
+    message: 'not found'
+  })
+
   return function (req, res, params, done) {
-    res.statusCode = 404
-    done(null, fromString('{ "message": "not found" }'))
+    done(err)
   }
 }
-
-// internal done function takes in an error object
-// can be: a boom instance (isBoom) || a raw error
-// send msg, status code, error(http status message) back to the client
-
-// need to add fields to above response as a key/value to boom object
-
-// merry.error always takes an opts object
-// with statusCode, message, and err
 
 function createError (opts) {
   assert.equal(typeof opts, 'object', 'merry.error: opts should be type object')
