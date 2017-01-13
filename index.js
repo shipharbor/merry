@@ -211,8 +211,11 @@ function schemaMiddleware (schema) {
   return function (req, res, ctx, done) {
     parseJson(req, function (err, json) {
       if (err) {
-        res.statusCode = 400
-        return done(explain(err, 'error validating error'))
+        var parseErr = createError({
+          message: 'body is not valid JSON',
+          statusCode: 400
+        })
+        return done(parseErr)
       }
       validate(json)
       if (validate.errors) {
