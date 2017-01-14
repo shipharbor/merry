@@ -42,7 +42,7 @@ function Merry (opts) {
 
   assert.equal(typeof opts, 'object', 'merry: opts should be an object')
 
-  this.log = pino(opts.logStream || process.stdout)
+  this.log = pino({ level: opts.logLevel || 'info' }, opts.logStream || process.stdout)
   this._router = null
 }
 
