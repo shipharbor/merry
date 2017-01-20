@@ -140,7 +140,7 @@ respond, and the latter is caused by the system (e.g. there's no database) and
 the system doesn't know how to handle it.
 
 ## Error handling
-The `done(err, stream)` callback can either take an error or a stream. If an
+The `done(err, stream)` callback can either take an error or a readable stream. If an
 error has `.statusCode` property, that value will be used for `res.statusCode`.
 Else it'll use any status code that was set previously, and default to `500`.
 
@@ -177,8 +177,8 @@ PORT=1234 node ./server.js
 
 ## Encoding
 If `Object` and `Array` are the data primitives of JavaScript, JSON is the
-primitive of APIs. To create JSON there's . It sets the right
-headers on `res` and efficiently turns JavaScript to JSON:
+primitive of APIs. By passing JSON to the `done(null, json)` Merry sets the right
+headers on `res` and converts it to a readable stream for the router to work. 
 ```js
 var merry = require('merry')
 var http = require('http')
@@ -215,7 +215,7 @@ given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
 
 ## Middleware
-You can set up a middleware set of functions to handle a request. Only the last
+Middleware is an efficient You can set up a middleware set of functions to handle a request. Only the last
 handler will propogate data, all others handle errors.
 
 ```js
