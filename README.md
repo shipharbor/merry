@@ -215,8 +215,10 @@ given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
 
 ## Middleware
-Middleware is an efficient You can set up a middleware set of functions to handle a request. Only the last
-handler will propogate data, all others handle errors.
+Middleware is a way to handle access to `req` and `res` objects across multiple
+functions when working with req-res cycle of an application. With merry, you can
+set up a middleware set of functions to handle a request. Only the last handler
+will propogate data, all others handle errors.
 
 ```js
 var merry = require('merry')
@@ -240,7 +242,7 @@ function myCoolEndpoint (req, res, ctx, done) {
 
 ## Body Parsing
 To make it easy to operate on common data types, we've included body parsers.
-These functions take the `req` stream, concatenate it and return the resulting
+These functions take the `req` readable stream, concatenate it and return the resulting
 data, or an error if it didn't succeed. Check out [#parsers](#parsers) for more
 details.
 
@@ -328,8 +330,8 @@ function myCoolEndpoint (req, res, ctx, done) {
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
 - __opts.logLevel:__ defaults to `'info'`. Determine the cutoff point for
-  logging.
-- __opts.logStream:__ defaults to `process.stdout`. Set the output stream to
+  logging
+- __opts.logStream:__ defaults to `process.stdout`. Set the output writable stream to
   write logs to
 
 ### app.router(opts?, [routes])
@@ -344,7 +346,7 @@ Each route has a signature of `(req, res, ctx, done)`:
   which are the parameters picked up from the `router` using the `:route`
   syntax in the route
 - __done:__ a handler with a signature of `(err, stream)`, that takes either an
-  error or a stream. If a stream is passed it pipes the stream to `res` until
+  error or a readable stream. If a stream is passed it pipes the readable stream to `res` until
   it is done.
 
 ### handler = app.start()
@@ -415,7 +417,7 @@ done executing, it should call `done()`.
 
 The last handler in the array of handlers is expected to send back a response:
 the `done()` function has a signature of
-`done(err|null, null|stream|string|object)`.
+`done(err|null, null|readableStream|string|object)`.
 
 ### middleware.schema(string)
 Takes a JSON string to validate the response against. It will parse and validate
