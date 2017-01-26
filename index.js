@@ -80,10 +80,10 @@ Merry.prototype.router = function (opts, routes) {
           var statusCode = err.output.statusCode ||
             (res.statusCode >= 400 ? res.statusCode : 500)
 
-          if (statusCode >= 400) {
-            self.log.warn(err)
-          } else if (statusCode >= 500) {
+          if (statusCode >= 500) {
             self.log.error(err)
+          } else if (statusCode >= 400) {
+            self.log.warn(err)
           }
 
           res.statusCode = statusCode
