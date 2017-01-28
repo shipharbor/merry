@@ -1,4 +1,5 @@
 var getPort = require('get-server-port')
+var JSONstream = require('jsonstream')
 var devnull = require('dev-null')
 var request = require('request')
 var merry = require('../')
@@ -78,15 +79,18 @@ tape('status code', function (t) {
   })
 
   t.test('should log 400 errors as warn', function (t) {
-    t.plan(2)
-    var log = fs.createWriteStream(path.join(__dirname, 'fixtures/writable-log.json'))
-    var app = merry({ logStream: log })
+    t.plan(3)
+    var fixture = path.join(__dirname, 'fixtures/writable-log.json')
+    var writeLog = fs.createWriteStream(fixture)
+
+    var app = merry({ logStream: writeLog })
     app.router([
       [ '/', function (req, res, ctx, done) {
         done(null, 'oi')
       }],
       [ '/404', merry.notFound() ]
     ])
+
     var server = http.createServer(app.start())
     server.listen(function () {
       var port = getPort(server)
@@ -95,11 +99,47 @@ tape('status code', function (t) {
         uri: 'http://localhost:' + port + '/hello'
       }
       request(opts, function (err, req) {
+        fs.createReadStream(fixture)
+          .pipe(JSONstream.parse('level'))
+          .on('data', function (d) {
+            t.equal(d, 40, 'warn log is recorded')
+            // warn is the first entry, so we can end the stream there
+            this.end()
+          })
         t.ifError(err, 'no err')
-
-        app.log.on('data', function (d) { console.log(d.toString()) })
-
         t.equal(req.statusCode, 404, 'not found')
+        server.close()
+      })
+    })
+  })
+
+  t.test('should log 500 errors as error', function (t) {
+    t.plan(3)
+    var fixture = path.join(__dirname, 'fixtures/writable-log.json')
+    var writeLog = fs.createWriteStream(fixture)
+
+    var app = merry({ logStream: writeLog })
+    app.router([ '/', function (req, res, ctx, done) {
+      done(new Error('whoa grrrl'))
+    }])
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var opts = {
+        method: 'GET',
+        uri: 'http://localhost:' + port
+      }
+      request(opts, function (err, req) {
+        fs.createReadStream(fixture)
+          .pipe(JSONstream.parse('level'))
+          .on('data', function (d) {
+            t.equal(d, 50, 'error log is recorded')
+            // warn is the first entry, so we can end the stream there
+            this.end()
+          })
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 500, 'server error')
         server.close()
       })
     })
