@@ -42,6 +42,7 @@
     "dependency-check": "^2.5.1",
     "dev-null": "^0.1.1",
     "get-server-port": "^1.0.0",
+    "jsonstream": "^1.0.3",
     "nyc": "^10.0.0",
     "request": "^2.79.0",
     "standard": "^8.0.0",

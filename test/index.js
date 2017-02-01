@@ -1,9 +1,12 @@
 var getPort = require('get-server-port')
+var JSONstream = require('jsonstream')
 var devnull = require('dev-null')
 var request = require('request')
-var tape = require('tape')
-var http = require('http')
 var merry = require('../')
+var http = require('http')
+var tape = require('tape')
+var path = require('path')
+var fs = require('fs')
 
 tape('merry()', function (t) {
   t.test('should assert input types', function (t) {
@@ -43,6 +46,100 @@ tape('http handlers', function (t) {
       request(opts, function (err, req) {
         t.ifError(err, 'no err')
         t.equal(req.statusCode, 200, 'status is ok')
+        server.close()
+      })
+    })
+  })
+})
+
+tape('status code', function (t) {
+  t.test('should send back a 404 when no route is found', function (t) {
+    t.plan(2)
+    var app = merry({ logStream: devnull() })
+    app.router([
+      [ '/', function (req, res, ctx, done) {
+        done(null, 'oi')
+      }],
+      [ '/404', merry.notFound() ]
+    ])
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var opts = {
+        method: 'GET',
+        uri: 'http://localhost:' + port + '/hello'
+      }
+      request(opts, function (err, req) {
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 404, 'not found')
+        server.close()
+      })
+    })
+  })
+
+  t.test('should log 400 errors as warn', function (t) {
+    t.plan(3)
+    var fixture = path.join(__dirname, 'fixtures/writable-log.json')
+    var writeLog = fs.createWriteStream(fixture)
+
+    var app = merry({ logStream: writeLog })
+    app.router([
+      [ '/', function (req, res, ctx, done) {
+        done(null, 'oi')
+      }],
+      [ '/404', merry.notFound() ]
+    ])
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var opts = {
+        method: 'GET',
+        uri: 'http://localhost:' + port + '/hello'
+      }
+      request(opts, function (err, req) {
+        fs.createReadStream(fixture)
+          .pipe(JSONstream.parse('level'))
+          .on('data', function (d) {
+            t.equal(d, 40, 'warn log is recorded')
+            // warn is the first entry, so we can end the stream there
+            this.end()
+          })
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 404, 'not found')
+        server.close()
+      })
+    })
+  })
+
+  t.test('should log 500 errors as error', function (t) {
+    t.plan(3)
+    var fixture = path.join(__dirname, 'fixtures/writable-log.json')
+    var writeLog = fs.createWriteStream(fixture)
+
+    var app = merry({ logStream: writeLog })
+    app.router([ '/', function (req, res, ctx, done) {
+      done(new Error('whoa grrrl'))
+    }])
+
+    var server = http.createServer(app.start())
+    server.listen(function () {
+      var port = getPort(server)
+      var opts = {
+        method: 'GET',
+        uri: 'http://localhost:' + port
+      }
+      request(opts, function (err, req) {
+        fs.createReadStream(fixture)
+          .pipe(JSONstream.parse('level'))
+          .on('data', function (d) {
+            t.equal(d, 50, 'error log is recorded')
+            // warn is the first entry, so we can end the stream there
+            this.end()
+          })
+        t.ifError(err, 'no err')
+        t.equal(req.statusCode, 500, 'server error')
         server.close()
       })
     })
