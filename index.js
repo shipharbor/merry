@@ -145,17 +145,21 @@ Merry.prototype.listen = function (port, cb) {
 Merry.prototype._onerror = function () {
   var self = this
 
-  process.once('uncaughtException', function (err) {
-    self.log.fatal(err)
-    console.error(err.stack)
-    process.exit(1)
-  })
+  if (process.listenerCount('uncaughtException') === 0) {
+    process.once('uncaughtException', function (err) {
+      self.log.fatal(err)
+      console.error(err.stack)
+      process.exit(1)
+    })
+  }
 
-  process.once('unhandledRejection', function (err) {
-    self.log.fatal(err)
-    console.error(err.stack)
-    process.exit(1)
-  })
+  if (process.listenerCount('unhandledRejection') === 0) {
+    process.once('unhandledRejection', function (err) {
+      self.log.fatal(err)
+      console.error(err.stack)
+      process.exit(1)
+    })
+  }
 }
 
 function notFound () {
