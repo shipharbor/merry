@@ -75,7 +75,10 @@ Merry.prototype.router = function (opts, routes) {
 
           var payload = err.output.payload
           if (err.data) payload.data = err.data
-          var body = stringify(payload)
+
+          var body = (typeof payload === 'string')
+           ? payload
+           : stringify(payload)
 
           var statusCode = err.output.statusCode ||
             (res.statusCode >= 400 ? res.statusCode : 500)
