@@ -118,6 +118,7 @@ Merry.prototype.router = function (opts, routes) {
 
 Merry.prototype.start = function () {
   assert.ok(this._router, 'merry.start: router was not found. Did you run app.router() ?')
+  this._onerror()
   return this._router
 }
 
@@ -128,6 +129,7 @@ Merry.prototype.listen = function (port, cb) {
 
   cb = cb || noop
 
+  this._onerror()
   server.listen(port, function () {
     self.log.info({
       message: 'listening',
