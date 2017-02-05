@@ -255,7 +255,9 @@ app.router([
 ])
 ```
 
-### JSON
+## CORS
+We support `Cross Origin Resource Sharing` by exposing it as `merry.cors`:
+
 ```js
 var merry = require('merry')
 var app = merry()
@@ -464,8 +466,22 @@ Create a new configuration client that reads environment variables from
 ### notFound = merry.notFound()
 Create a naive `/404` handler that can be passed into a path.
 
-### routeHandler = merry.cors(handler)
-Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
+### cors = merry.cors(opts)
+You can pass on a few options to the cors wrapper to handle the specific headers 
+you might need. If not tho, we gotchu with some defaults.
+- __opts.headers__: sets up headers that you want browsers to be able to access.
+Takes an array. Defaults to `['Content-Type', 'Accept', 'X-Requested-With']`.
+- __opts.methods__: these are methods that are allowed to access your resource.
+Also takes in an array. Will default to the usual suspects of
+`['PUT', 'POST', 'DELETE', 'GET', 'OPTIONS']`
+- __opts.credentials__: this indicates whether or not a request can be made 
+using credentials. Will default to true.
+- __opts.origin__: this specifies a URI that can access your resource. Takes in 
+a string and will default to wildcard, `'*'`
+
+
+### routeHandler = cors(handler)
+Add CORS support for handlers. Adds a handler for the HTTP `OPTIONS` method to
 catch preflight requests.
 
 ### routeHandler = merry.middleware(handlers)
@@ -535,4 +551,3 @@ $ npm install merry
 [11]: https://github.com/feross/standard
 [pino]: https://github.com/pinojs/pino
 [ndjson]: http://ndjson.org/
-[corsify]: https://github.com/Raynos/corsify

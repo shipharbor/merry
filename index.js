@@ -5,7 +5,6 @@ var walk = require('server-router/walk')
 var serverSink = require('server-sink')
 var isStream = require('is-stream')
 var mapLimit = require('map-limit')
-var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
@@ -183,33 +182,43 @@ function notFound () {
 }
 
 function cors (opts) {
-  var _cors = corsify(opts)
+  opts = opts || {}
+  var headers = ['Content-Type', 'Accept', 'X-Requested-With']
+  var methods = ['PUT', 'POST', 'DELETE', 'GET', 'OPTIONS']
+  var credentials = opts.credentials || true
+  var origin = opts.origin || '*'
+
+  if (Array.isArray(opts.headers)) {
+    headers.push.apply(headers, opts.headers)
+  }
+
+  if (Array.isArray(opts.methods)) {
+    methods.push.apply(methods, opts.methods)
+  }
+
   return function (handler) {
-    var obj = {}
+    var _handler = null
     if (typeof handler === 'object') {
       var keys = Object.keys(handler)
 
       assert.equal(keys.length, 1, 'merry.cors: we can only corsify a single method per endpoint')
 
       keys.forEach(function (key) {
-        var _handler = toCors(handler[key])
-        obj.options = _handler
-        obj[key] = _handler
+        _handler = toCors(handler[key])
       })
     } else {
-      var _handler = toCors(handler)
-      obj.options = _handler
-      obj.get = _handler
+      _handler = toCors(handler)
     }
 
-    return obj
+    return _handler
 
     function toCors (handler) {
       return function (req, res, ctx, done) {
-        var _handler = _cors(function (req, res) {
-          handler(req, res, ctx, done)
-        })
-        _handler(req, res)
+        res.setHeader('Access-Control-Allow-Origin', origin)
+        res.setHeader('Access-Control-Allow-Headers', headers.join(','))
+        res.setHeader('Access-Control-Allow-Credentials', credentials)
+        res.setHeader('Access-Control-Allow-Methods', methods.join(','))
+        handler(req, res, ctx, done)
       }
     }
   }

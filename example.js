@@ -3,6 +3,9 @@ var http = require('http')
 
 var notFound = merry.notFound
 var error = merry.error
+var cors = merry.cors({
+  methods: 'POST, GET'
+})
 
 var env = merry.env({ PORT: 8080 })
 var app = merry()
@@ -15,9 +18,9 @@ app.router([
     done(error(500, 'server error!'))
   }],
   ['/api', {
-    get: function (req, res, ctx, done) {
+    'get': cors(function (req, res, ctx, done) {
       done(null, 'hello very explicit GET')
-    }
+    })
   }],
   [ '/404', notFound() ]
 ])

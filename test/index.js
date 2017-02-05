@@ -195,6 +195,23 @@ tape('status code', function (t) {
   })
 })
 
+tape('cors', function (t) {
+  t.test('should set cors headers on a specific handler', function (t) {
+    t.plan(3)
+    var cors = merry.cors()
+    var app = merry({ logStream: devnull() })
+
+    app.router([
+      '/', cors(function (req, res, ctx, done) {
+        t.equal(res._headers['access-control-allow-origin'], '*', 'cors is okay')
+        done()
+      })
+    ])
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+})
+
 tape('encoders', function (t) {
   t.test('should exit fine if no data is passed', function (t) {
     t.plan(2)
