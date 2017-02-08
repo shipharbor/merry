@@ -190,10 +190,12 @@ function cors (opts) {
 
   if (Array.isArray(opts.headers)) {
     headers.push.apply(headers, opts.headers)
+    headers.join('')
   }
 
   if (Array.isArray(opts.methods)) {
     methods.push.apply(methods, opts.methods)
+    methods.join('')
   }
 
   return function (handler) {
@@ -215,9 +217,9 @@ function cors (opts) {
     function toCors (handler) {
       return function (req, res, ctx, done) {
         res.setHeader('Access-Control-Allow-Origin', origin)
-        res.setHeader('Access-Control-Allow-Headers', headers.join(','))
+        res.setHeader('Access-Control-Allow-Headers', headers)
         res.setHeader('Access-Control-Allow-Credentials', credentials)
-        res.setHeader('Access-Control-Allow-Methods', methods.join(','))
+        res.setHeader('Access-Control-Allow-Methods', methods)
         handler(req, res, ctx, done)
       }
     }
