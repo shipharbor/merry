@@ -227,7 +227,7 @@ tape('cors', function (t) {
     performGet(server, t)
   })
   t.test('should accept multiple cors methods on a handler', function (t) {
-    t.plan(3)
+    t.plan(4)
     var cors = merry.cors({
       methods: ['GET', 'PUT']
     })
@@ -235,8 +235,8 @@ tape('cors', function (t) {
 
     app.router([
       '/', cors(function (req, res, ctx, done) {
-        var methods = ['GET', 'PUT']
-        t.equal(res._headers['access-control-allow-methods'], methods, 'cors sets get and put methods')
+        t.equal(res._headers['access-control-allow-methods'][0], 'GET', 'cors sets get and put methods')
+        t.equal(res._headers['access-control-allow-methods'][1], 'PUT', 'cors sets get and put methods')
         done()
       })
     ])
