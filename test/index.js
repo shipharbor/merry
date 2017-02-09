@@ -196,7 +196,7 @@ tape('status code', function (t) {
 })
 
 tape('cors', function (t) {
-  t.test('should set cors headers on a specific handler', function (t) {
+  t.test('should set default cors headers on a handler', function (t) {
     t.plan(3)
     var cors = merry.cors()
     var app = merry({ logStream: devnull() })
@@ -204,6 +204,39 @@ tape('cors', function (t) {
     app.router([
       '/', cors(function (req, res, ctx, done) {
         t.equal(res._headers['access-control-allow-origin'], '*', 'cors is okay')
+        done()
+      })
+    ])
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+  t.test('should accept a single cors method on a handler', function (t) {
+    t.plan(3)
+    var cors = merry.cors({
+      methods: 'GET'
+    })
+    var app = merry({ logStream: devnull() })
+
+    app.router([
+      '/', cors(function (req, res, ctx, done) {
+        t.equal(res._headers['access-control-allow-methods'], 'GET', 'cors sets get method')
+        done()
+      })
+    ])
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+  t.test('should accept multiple cors methods on a handler', function (t) {
+    t.plan(3)
+    var cors = merry.cors({
+      methods: ['GET', 'PUT']
+    })
+    var app = merry({ logStream: devnull() })
+
+    app.router([
+      '/', cors(function (req, res, ctx, done) {
+        var methods = ['GET', 'PUT']
+        t.equal(res._headers['access-control-allow-methods'], methods, 'cors sets get and put methods')
         done()
       })
     ])

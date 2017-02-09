@@ -183,20 +183,10 @@ function notFound () {
 
 function cors (opts) {
   opts = opts || {}
-  var headers = ['Content-Type', 'Accept', 'X-Requested-With']
-  var methods = ['PUT', 'POST', 'DELETE', 'GET', 'OPTIONS']
+  var headers = opts.headers || ['Content-Type', 'Accept', 'X-Requested-With']
+  var methods = opts.methods || ['PUT', 'POST', 'DELETE', 'GET', 'OPTIONS']
   var credentials = opts.credentials || true
   var origin = opts.origin || '*'
-
-  if (Array.isArray(opts.headers)) {
-    headers.push.apply(headers, opts.headers)
-    headers.join('')
-  }
-
-  if (Array.isArray(opts.methods)) {
-    methods.push.apply(methods, opts.methods)
-    methods.join('')
-  }
 
   return function (handler) {
     var _handler = null
