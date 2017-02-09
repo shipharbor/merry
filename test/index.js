@@ -210,6 +210,7 @@ tape('cors', function (t) {
     var server = http.createServer(app.start())
     performGet(server, t)
   })
+
   t.test('should accept a single cors method on a handler', function (t) {
     t.plan(3)
     var cors = merry.cors({
@@ -226,6 +227,7 @@ tape('cors', function (t) {
     var server = http.createServer(app.start())
     performGet(server, t)
   })
+
   t.test('should accept multiple cors methods on a handler', function (t) {
     t.plan(4)
     var cors = merry.cors({
