@@ -256,10 +256,18 @@ app.router([
 ```
 
 ## CORS
-We support `Cross Origin Resource Sharing` by exposing it as `merry.cors`:
+We support `Cross Origin Resource Sharing` by exposing it as `merry.cors`.
+You can specify methods, origin, credentials, and headers you want your
+route to allow.
 
 ```js
 var merry = require('merry')
+
+var cors = merry.cors({
+  methods: 'GET',
+  origin: 'http://localhost:8080'
+})
+
 var app = merry()
 app.router([
   ['/json', {
