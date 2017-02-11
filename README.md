@@ -256,9 +256,10 @@ app.router([
 ```
 
 ## CORS
-We support `Cross Origin Resource Sharing` by exposing it as `merry.cors`.
-You can specify methods, origin, credentials, and headers you want your
-route to allow.
+We support [`Cross Origin Resource Sharing`]
+(https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
+by exposing it as `merry.cors`. You can specify methods, origin, credentials,
+and headers you want your route to allow, or leave it up to the defaults.
 
 ```js
 var merry = require('merry')

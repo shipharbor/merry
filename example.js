@@ -17,8 +17,8 @@ app.router([
   [ '/error', function (req, res, ctx, done) {
     done(error(500, 'server error!'))
   }],
-  ['/api', {
-    'get': cors(function (req, res, ctx, done) {
+  ['/cors', {
+    get: cors(function (req, res, ctx, done) {
       done(null, 'hello very explicit GET')
     })
   }],

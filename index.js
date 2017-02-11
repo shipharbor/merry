@@ -183,10 +183,24 @@ function notFound () {
 
 function cors (opts) {
   opts = opts || {}
+  assert.equal(typeof opts, 'object', 'merry.cors: opts should be type object')
+
   var headers = opts.headers || ['Content-Type', 'Accept', 'X-Requested-With']
   var methods = opts.methods || ['PUT', 'POST', 'DELETE', 'GET', 'OPTIONS']
   var credentials = opts.credentials || true
   var origin = opts.origin || '*'
+
+  assert.ok(typeof headers === 'string' || typeof headers === 'object', 'merry.cors: cors headers should be type string or type object')
+  assert.ok(typeof methods === 'string' || typeof methods === 'object', 'merry.cors: cors methods should be type string or type object')
+  assert.equal(typeof credentials, 'boolean', 'merry.cors: cors credentials should be type boolean')
+  assert.equal(typeof origin, 'string', 'merry.cors: cors origin should be type string')
+
+  if (Array.isArray(headers)) {
+    headers = headers.join(', ')
+  }
+  if (Array.isArray(methods)) {
+    methods = methods.join(', ')
+  }
 
   return function (handler) {
     var _handler = null
