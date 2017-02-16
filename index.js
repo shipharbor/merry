@@ -1,3 +1,4 @@
+var multipartReadStream = require('multipart-read-stream')
 var isMyJsonValid = require('is-my-json-valid')
 var fastJsonParse = require('fast-json-parse')
 var stringify = require('fast-safe-stringify')
@@ -23,9 +24,10 @@ Merry.env = envobj
 Merry.cors = cors
 
 Merry.parse = {
-  json: parseJson,
+  multipart: parseMultipart,
+  string: parseString,
   text: parseString,
-  string: parseString
+  json: parseJson
 }
 
 Merry.middleware = middleware
@@ -300,6 +302,11 @@ function parseString (req, res, cb) {
   function handler (str) {
     cb(null, str)
   }
+}
+
+function parseMultipart (headers, opts, cb) {
+  if (headers.headers) headers = headers.headers
+  multipartReadStream(headers, opts, cb)
 }
 
 function noop () {}

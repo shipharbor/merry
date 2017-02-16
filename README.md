@@ -178,7 +178,7 @@ PORT=1234 node ./server.js
 ## Encoding
 If `Object` and `Array` are the data primitives of JavaScript, JSON is the
 primitive of APIs. By passing JSON to the `done(null, json)` Merry sets the right
-headers on `res` and converts it to a readable stream for the router to work. 
+headers on `res` and converts it to a readable stream for the router to work.
 ```js
 var merry = require('merry')
 var http = require('http')
@@ -346,8 +346,8 @@ Each route has a signature of `(req, res, ctx, done)`:
   which are the parameters picked up from the `router` using the `:route`
   syntax in the route
 - __done:__ a handler with a signature of `(err, stream)`, that takes either an
-  error or a readable stream. If a stream is passed it pipes the readable stream to `res` until
-  it is done.
+  error or a readable stream. If a stream is passed it pipes the readable
+  stream to `res` until it is done.
 
 ### handler = app.start()
 Create a handler that can be passed directly into an `http` server.
@@ -425,6 +425,13 @@ the `res` against the schema, and attach it to `ctx.body` as part of middleware.
 
 ### merry.parse.json(req, handler(err, object))
 Parse JSON in request body. Returns an object.
+
+### merry.parse.multipart(req|headers, [options], filehandler)
+Parse a multipart upload (e.g. uploading files to the server). Filehandler has
+an API of `filehandler(fieldname, file, filename, encoding, mimetype)`. Uses
+[multipart-read-stream](https://github.com/yoshuawuyts/multipart-read-stream)
+under the hood. Note that this does not validate, scan or fingerprint any
+content.
 
 ### merry.parse.text(req, handler(err, text))
 Parse text in request body. Returns a string. You can alternativel use an alias
