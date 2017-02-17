@@ -356,7 +356,7 @@ var app = merry()
 app.router(['/', handleRoute])
 
 var handler = app.start()
-var server = http.createHttpServer()
+var server = http.createServer(handler)
 server.listen(8080)
 
 function handleRoute (req, res, ctx, done) {
