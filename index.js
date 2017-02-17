@@ -1,20 +1,13 @@
-var multipartReadStream = require('multipart-read-stream')
-var isMyJsonValid = require('is-my-json-valid')
-var fastJsonParse = require('fast-json-parse')
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
 var fromString = require('from2-string')
 var walk = require('server-router/walk')
 var serverSink = require('server-sink')
-var explain = require('explain-error')
-var concat = require('concat-stream')
 var isStream = require('is-stream')
-var mapLimit = require('map-limit')
 var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
-var boom = require('boom')
 var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
@@ -23,18 +16,9 @@ Merry.notFound = notFound
 Merry.env = envobj
 Merry.cors = cors
 
-Merry.parse = {
-  multipart: parseMultipart,
-  string: parseString,
-  text: parseString,
-  json: parseJson
-}
-
-Merry.middleware = middleware
-middleware.schema = schemaMiddleware
-
-Merry.error = createError
-Merry.error.wrap = wrapError
+Merry.middleware = require('./middleware')
+Merry.error = require('./error')
+Merry.parse = require('./parse')
 
 module.exports = Merry
 
@@ -73,7 +57,7 @@ Merry.prototype.router = function (opts, routes) {
       // val should ideally be a stream already, but if it's not we got you bae
       handler(req, res, ctx, function (err, val) {
         if (err) {
-          if (!err.isBoom) err = wrapError(err)
+          if (!err.isBoom) err = Merry.error.wrap(err)
 
           var payload = err.output.payload
           if (err.data) payload.data = err.data
@@ -165,83 +149,13 @@ Merry.prototype._onerror = function () {
 }
 
 function notFound () {
-  var err = createError({
+  var err = Merry.error({
     statusCode: 404,
     message: 'not found'
   })
 
   return function (req, res, params, done) {
     done(err)
-  }
-}
-
-function createError (opts) {
-  assert.equal(typeof opts, 'object', 'merry.error: opts should be type object')
-  assert.equal(typeof opts.statusCode, 'number', 'merry.error: statusCode should be type number')
-
-  var statusCode = opts.statusCode
-  var message = opts.message
-  var data = opts.data
-
-  return boom.create(statusCode, message, data)
-}
-
-function wrapError (err, opts) {
-  opts = opts || {}
-
-  assert.equal(typeof err, 'object', 'merry.wrapError: err should be type object')
-  assert.equal(typeof opts, 'object', 'merry.wrapError: opts should be type object')
-
-  var statusCode = opts.statusCode
-  var message = opts.message
-
-  return boom.wrap(err, statusCode, message)
-}
-
-function middleware (arr) {
-  assert.ok(Array.isArray(arr), 'merry.middleware: arr should be an array')
-  assert.ok(arr.length >= 1, 'merry.middleware: arr should contain at least one handler')
-
-  var final = arr.pop()
-
-  return function (req, res, ctx, done) {
-    mapLimit(arr, 1, iterator, function (err) {
-      if (err) return done(err)
-      final(req, res, ctx, done)
-    })
-
-    function iterator (cb, done) {
-      cb(req, res, ctx, done)
-    }
-  }
-}
-
-function schemaMiddleware (schema) {
-  assert.ok(typeof schema === 'string' || typeof schema === 'object', 'middleware.schema: schema should be type string or type object')
-  var validate = isMyJsonValid(schema)
-
-  return function (req, res, ctx, done) {
-    parseJson(req, function (err, json) {
-      if (err) {
-        var parseErr = createError({
-          message: 'body is not valid JSON',
-          statusCode: 400
-        })
-        return done(parseErr)
-      }
-      validate(json)
-      if (validate.errors) {
-        res.statusCode = 400
-        var validationErr = createError({
-          message: 'error validating JSON',
-          statusCode: 400,
-          data: validate.errors
-        })
-        return done(validationErr)
-      }
-      ctx.body = json
-      done()
-    })
   }
 }
 
@@ -276,37 +190,6 @@ function cors (opts) {
       }
     }
   }
-}
-
-function parseJson (req, res, cb) {
-  if (!cb) cb = res
-  req.pipe(concat(handler), function (err) {
-    if (err) return cb(explain(err, 'pipe error'))
-  })
-
-  function handler (buf) {
-    var json = fastJsonParse(buf)
-    if (json.err) {
-      return cb(explain(json.err, 'merry.parse.json: error parsing JSON'))
-    }
-    cb(null, json.value)
-  }
-}
-
-function parseString (req, res, cb) {
-  if (!cb) cb = res
-  pump(req, concat({ encoding: 'string' }, handler), function (err) {
-    if (err) return cb(explain(err, 'pipe error'))
-  })
-
-  function handler (str) {
-    cb(null, str)
-  }
-}
-
-function parseMultipart (headers, opts, cb) {
-  if (headers.headers) headers = headers.headers
-  multipartReadStream(headers, opts, cb)
 }
 
 function noop () {}
