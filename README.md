@@ -4,10 +4,7 @@
   🌊🌊⛵️🌊🌊
 </div>
 <div align="center">
-  <strong>Nimble HTTP framework</strong>
-</div>
-<div align="center">
-  Create tiny servers that run fast
+  <strong>Cute streaming API framework</strong>
 </div>
 
 <br />
