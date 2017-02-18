@@ -48,6 +48,7 @@ Merry.prototype.router = function (opts, routes) {
   var router = serverRouter(opts, routes)
   walk(router, wrap)
   this._router = router
+  return this
 
   // change server-router signature
   function wrap (route, handler) {
