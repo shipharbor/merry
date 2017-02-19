@@ -53,6 +53,19 @@
 - __linear:__ smooth sailing from tinkering to production
 - __very cute:__ 🌊🌊⛵️🌊🌊
 
+## Table of Content
+- [Usage](#usage)
+- [Logging](#logging)
+- [Error Handling](#error-handling)
+- [Configuration](#configuration)
+- [Routing](#routing)
+- [Encoders](#encoders)
+- [Parsers](#parsers)
+- [Middleware](#middleware)
+- [API](#api)
+- [Installation](#installation)
+- [See Also](#see-also)
+
 ## Usage
 Given the following `index.js`:
 ```js
@@ -172,23 +185,6 @@ PORT=1234 node ./server.js
 // => port: 1234
 ```
 
-## Encoding
-If `Object` and `Array` are the data primitives of JavaScript, JSON is the
-primitive of APIs. By passing JSON to the `done(null, json)` Merry sets the right
-headers on `res` and converts it to a readable stream for the router to work.
-```js
-var merry = require('merry')
-var http = require('http')
-
-var app = merry()
-app.router(['/', function (req, res, ctx, done) {
-  done(null, { message: 'hello JSON' })
-}])
-
-var server = http.createServer(app.start())
-server.listen(8080)
-```
-
 ## Routing
 Merry uses `server-router` under the hood to create its routes. Routes are
 created using recursive arrays that are turned into an efficient `trie`
@@ -211,52 +207,35 @@ registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
 
-## Middleware
-Middleware is a way to handle access to `req` and `res` objects across multiple
-functions when working with req-res cycle of an application. With merry, you can
-set up a middleware set of functions to handle a request. Only the last handler
-will propogate data, all others handle errors.
-
+## Encoders
+If `Object` and `Array` are the data primitives of JavaScript, JSON is the
+primitive of APIs. By passing JSON to the `done(null, json)` Merry sets the right
+headers on `res` and converts it to a readable stream for the router to work.
 ```js
 var merry = require('merry')
+var http = require('http')
 
-var mw = merry.middleware
 var app = merry()
-app.router([
-  ['/foo', mw([otherHandler, myCoolEndpoint])]
-])
+app.router(['/', function (req, res, ctx, done) {
+  done(null, { message: 'hello JSON' })
+}])
 
-function otherHandler (req, res, ctx, done) {
-  ctx.foo = 'bar'
-  done()
-}
-
-function myCoolEndpoint (req, res, ctx, done) {
-  console.log('woah look at me, shiny code', ctx.foo)
-  done(null, 'its so shiny')
-}
+var server = http.createServer(app.start())
+server.listen(8080)
 ```
 
-## Body Parsing
+
+## Parsers
 To make it easy to operate on common data types, we've included body parsers.
 These functions take the `req` readable stream, concatenate it and return the resulting
-data, or an error if it didn't succeed. Check out [#parsers](#parsers) for more
-details.
+data, or an error if it didn't succeed.
 
+### Strings
 ```js
 var merry = require('merry')
 var app = merry()
 app.router([
-  [ '/json', {
-    put: function (req, res, ctx, done) {
-      merry.parse.json(req, function (err, json) {
-        if (err) return done(err)
-        ctx.json = json
-        done(null, 'done parsing json')
-      })
-    }
-  } ],
-  [ '/string', {
+  ['/string', {
     put: function (req, res, ctx, done) {
       merry.parse.string(req, function (err, string) {
         if (err) return done(err)
@@ -264,31 +243,28 @@ app.router([
         done(null, 'done parsing string')
       })
     }
-  } ]
+  }]
 ])
 ```
 
-## CORS
-To support `Cross Origin Resource Sharing` we wrap [corsify][corsify] and
-expose it as `merry.cors`:
-
+### JSON
 ```js
 var merry = require('merry')
-
-var cors = merry.cors({
-  'Access-Control-Allow-Methods': 'POST, GET'
-})
-
 var app = merry()
 app.router([
-  ['/verify', cors(function (req, res, ctx, done) {
-    done(null, 'all is well!')
-  })]
+  ['/json', {
+    put: function (req, res, ctx, done) {
+      merry.parse.json(req, function (err, json) {
+        if (err) return done(err)
+        ctx.json = json
+        done(null, 'done parsing json')
+      })
+    }
+  }]
 ])
-app.listen(8080)
 ```
 
-## JSON Schema
+### JSON Schema
 One of the most common things for your code to consume is probably going to be
 JSON. The problem is that it doesn't always come back in the nice format you
 might need. But we gotchu: the `middleware` portion of Merry validates that
@@ -320,6 +296,32 @@ app.router([
 function myCoolEndpoint (req, res, ctx, done) {
   console.log('hot code bod', ctx.body)
   done(null, 'success!')
+}
+```
+
+## Middleware
+Middleware is a way to handle access to `req` and `res` objects across multiple
+functions when working with req-res cycle of an application. With merry, you can
+set up a middleware set of functions to handle a request. Only the last handler
+will propogate data, all others handle errors.
+
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var app = merry()
+app.router([
+  ['/foo', mw([otherHandler, myCoolEndpoint])]
+])
+
+function otherHandler (req, res, ctx, done) {
+  ctx.foo = 'bar'
+  done()
+}
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('woah look at me, shiny code', ctx.foo)
+  done(null, 'its so shiny')
 }
 ```
 
