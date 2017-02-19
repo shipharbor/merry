@@ -325,6 +325,37 @@ function myCoolEndpoint (req, res, ctx, done) {
 }
 ```
 
+### Middleware Gateway
+An alternate way of consuming middleware is through `merry.gateway`. This
+creates an object on which you can set values, which might result in something
+slightly more readable when consuming lots of middleware.
+
+```js
+var merry = require('merry')
+
+var gate = merry.gateway()
+var app = merry()
+app.router([
+  ['/foo', {
+    get: gate({
+      schema: fs.readFileSync(path.join(__dirname, 'schemas/my-cool-schema')),
+      handler: require('./handlers/my-cool-handler')
+    })
+  }]
+]).listen(8080)
+```
+
+If you want to pass custom middleware, the gateway constructor can take an
+array of middleware. By default this is applied _after_ the built-in
+middleware. You can change the order of arguments by passing the order
+argument.
+
+```js
+var gate = merry.gateway({
+  middleware: [ require('my-mw'), require('other-mw') ]
+})
+```
+
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
@@ -407,7 +438,7 @@ Create a naive `/404` handler that can be passed into a path.
 Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
 catch preflight requests.
 
-### merry.middleware(handlers)
+### routeHandler = merry.middleware(handlers)
 Takes an array of handler functions. Each handler has a signature of
 `handler(req, res, ctx, done)`. `ctx` is an object onto which data can be
 attached. The `ctx` object is shared from one handler onto the other. If an
@@ -435,6 +466,17 @@ content.
 ### merry.parse.text(req, handler(err, text))
 Parse text in request body. Returns a string. You can alternativel use an alias
 of `merry.parse.string`.
+
+### gateway = merry.gateway(opts)
+Create a new gateway opts. By default includes all middleware exposed by
+`merry.middleware`. Takes the following opts:
+- __opts.middleware:__ Pass in an object containing additional middleware.
+- __opts.order:__ Specify the order in which the middleware must be applied.
+  Should be an array of strings. Defaults to whatever `Object.keys` returns.
+
+### routeHandler = gateway(opts)
+Create new routeHandler from a `gateway` instance. `opts` is configuration for
+the middleware that's used.
 
 ## Installation
 ```sh

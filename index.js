@@ -17,6 +17,7 @@ Merry.env = envobj
 Merry.cors = cors
 
 Merry.middleware = require('./middleware')
+Merry.gateway = require('./gateway')
 Merry.error = require('./error')
 Merry.parse = require('./parse')
 
