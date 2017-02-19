@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var pretty = require('pino/pretty')
+var pretty = require('pino-colada')
 
 process.stdin
   .pipe(pretty())

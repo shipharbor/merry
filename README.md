@@ -442,6 +442,7 @@ $ npm install merry
 ## See Also
 - [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
+- [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)

@@ -34,6 +34,7 @@
     "map-limit": "0.0.1",
     "multipart-read-stream": "^3.0.0",
     "pino": "^4.0.0",
+    "pino-colada": "^1.0.1",
     "pump": "^1.0.1",
     "server-router": "^4.0.0",
     "server-sink": "^1.0.0",
