@@ -4,6 +4,7 @@ var fromString = require('from2-string')
 var walk = require('server-router/walk')
 var serverSink = require('server-sink')
 var isStream = require('is-stream')
+var mapLimit = require('map-limit')
 var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
@@ -27,10 +28,16 @@ function Merry (opts) {
   if (!(this instanceof Merry)) return new Merry(opts)
   opts = opts || {}
 
-  assert.equal(typeof opts, 'object', 'merry: opts should be an object')
+  assert.equal(typeof opts, 'object', 'merry: opts should be type object')
 
   this.log = pino({ level: opts.logLevel || 'info' }, opts.logStream || process.stdout)
+  this._requestHandlers = []
   this._router = null
+}
+
+Merry.prototype.use = function (obj) {
+  assert.equal(typeof obj, 'object', 'merry.use: obj should be type object')
+  if (obj.onRequest) this._requestHandlers.push(obj.onRequest)
 }
 
 Merry.prototype.router = function (opts, routes) {
@@ -48,7 +55,21 @@ Merry.prototype.router = function (opts, routes) {
 
   var router = serverRouter(opts, routes)
   walk(router, wrap)
-  this._router = router
+
+  this._router = function (req, res) {
+    if (!self._requestHandlers.length) {
+      return router(req, res)
+    } else {
+      mapLimit(self._requestHandlers, 1, iterator, function () {
+        router(req, res)
+      })
+    }
+
+    function iterator (fn, cb) {
+      fn(req, res, cb)
+    }
+  }
+
   return this
 
   // change server-router signature
