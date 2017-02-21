@@ -62,6 +62,7 @@
 - [Encoders](#encoders)
 - [Parsers](#parsers)
 - [Middleware](#middleware)
+- [Plugins](#plugins)
 - [API](#api)
 - [Installation](#installation)
 - [See Also](#see-also)
@@ -356,6 +357,20 @@ var gate = merry.gateway({
 })
 ```
 
+## Plugins
+Plugins provide a way to access framework internals in a clean way. You can
+register plugins through `app.use()`.
+
+```js
+var app = merry()
+app.use({
+  onRequest: function (req, res, done) {
+    res.statusCode = 401   // all statusCodes will now default to 401
+    done()
+  }
+})
+```
+
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
@@ -410,6 +425,14 @@ function handleRoute (req, res, ctx, done) {
   done(null, 'hello planet')
 }
 ```
+
+### app.use(plugin)
+Register a plugin on the merry instance. A plugin is an object where the
+following values are possible:
+- __onRequest(req, res, done):__ called before a request is passed into the
+  router. `done()` can be called when the handler is done, and ready to pass
+  control to the next handler (or router if there are no handlers left). If the
+  request is terminated inside the handler, `done()` should not be called.
 
 ### error = merry.error(obj)
 Create a new HTTP error from an object. Expects a `.statusCode` and a `.message`
