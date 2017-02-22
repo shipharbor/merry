@@ -79,7 +79,6 @@ customize merry to fit your use case. We hope you have a good time using it.
 Given the following `index.js`:
 ```js
 var merry = require('merry')
-var pump = require('pump')
 var http = require('http')
 
 var notFound = merry.notFound
