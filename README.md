@@ -44,6 +44,14 @@
   </a>
 </div>
 
+<br />
+
+Merry is a little Node framework that helps you build performant applications
+with little effort. We don't think that "fast" and "cute" should be mutually
+exclusive. Out of the box we've included standardized logging, consistent error
+handling, a clean streams API and plenty of nuts, bolts and options to
+customize merry to fit your use case. We hope you have a good time using it.
+:v: _-Team Merry_
 
 ## Features
 - __fast:__ using Node streams, merry handles request like no other
