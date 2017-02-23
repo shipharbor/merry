@@ -70,6 +70,7 @@ customize merry to fit your use case. We hope you have a good time using it.
 - [Encoders](#encoders)
 - [Parsers](#parsers)
 - [Middleware](#middleware)
+- [Gateway](#gateway)
 - [Plugins](#plugins)
 - [API](#api)
 - [Installation](#installation)
@@ -367,7 +368,7 @@ function myCoolEndpoint (req, res, ctx, done) {
 }
 ```
 
-### Middleware Gateway
+## Gateway
 An alternate way of consuming middleware is through `merry.gateway`. This
 creates an object on which you can set values, which might result in something
 slightly more readable when consuming lots of middleware.
