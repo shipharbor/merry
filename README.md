@@ -23,13 +23,13 @@
       alt="NPM version" />
   </a>
   <!-- Build Status -->
-  <a href="https://travis-ci.org/yoshuawuyts/merry">
-    <img src="https://img.shields.io/travis/yoshuawuyts/merry/master.svg?style=flat-square"
+  <a href="https://travis-ci.org/shipharbor/merry">
+    <img src="https://img.shields.io/travis/shipharbor/merry/master.svg?style=flat-square"
       alt="Build Status" />
   </a>
   <!-- Test Coverage -->
-  <a href="https://codecov.io/github/yoshuawuyts/merry">
-    <img src="https://img.shields.io/codecov/c/github/yoshuawuyts/merry/master.svg?style=flat-square"
+  <a href="https://codecov.io/github/shipharbor/merry">
+    <img src="https://img.shields.io/codecov/c/github/shipharbor/merry/master.svg?style=flat-square"
       alt="Test Coverage" />
   </a>
   <!-- Downloads -->
@@ -38,7 +38,7 @@
       alt="Downloads" />
   </a>
   <!-- Standard -->
-  <a href="https://codecov.io/github/yoshuawuyts/merry">
+  <a href="https://codecov.io/github/shipharbor/merry">
     <img src="https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square"
       alt="Standard" />
   </a>
@@ -525,10 +525,10 @@ $ npm install merry
 [1]: https://nodejs.org/api/documentation.html#documentation_stability_index
 [2]: https://img.shields.io/npm/v/merry.svg?style=flat-square
 [3]: https://npmjs.org/package/merry
-[4]: https://img.shields.io/travis/yoshuawuyts/merry/master.svg?style=flat-square
-[5]: https://travis-ci.org/yoshuawuyts/merry
-[6]: https://img.shields.io/codecov/c/github/yoshuawuyts/merry/master.svg?style=flat-square
-[7]: https://codecov.io/github/yoshuawuyts/merry
+[4]: https://img.shields.io/travis/shipharbor/merry/master.svg?style=flat-square
+[5]: https://travis-ci.org/shipharbor/merry
+[6]: https://img.shields.io/codecov/c/github/shipharbor/merry/master.svg?style=flat-square
+[7]: https://codecov.io/github/shipharbor/merry
 [8]: http://img.shields.io/npm/dm/merry.svg?style=flat-square
 [9]: https://npmjs.org/package/merry
 [10]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square

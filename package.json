@@ -12,7 +12,7 @@
     "test": "standard && npm run deps && nyc tap test/*.js",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov"
   },
-  "repository": "yoshuawuyts/merry",
+  "repository": "shipharbor/merry",
   "keywords": [
     "http",
     "framework",
