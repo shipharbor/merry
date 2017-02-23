@@ -255,6 +255,40 @@ app.router([
 ])
 ```
 
+### Multipart Form Uploads
+Multipart uploads are used to upload files from the browser. Multiple files can
+be streamed in a single request, so our handler needs to handle multiple
+streams. We use the
+[multipart-read-stream](https://github.com/yoshuawuyts/multipart-read-stream/)
+package under the hood to handle this.
+
+```js
+var merry = require('merry')
+var path = require('path')
+var pump = require('pump')
+var fs = require('fs')
+
+var app = merry()
+app.router([
+  ['/string', {
+    put: function (req, res, ctx, done) {
+      var multipartStream = merry.parse.multipart(req, handler)
+
+      pump(req, multipartStream, function (err) {
+        if (err) res.end('server error')
+        res.end()
+      })
+
+      function handler (fieldname, file, filename) {
+        console.log('reading file ' + filename + ' from field ' + fieldname)
+        var fileStream = fs.createWriteStream(path.join('/tmp', filename))
+        pump(file, fileStream)
+      }
+    }
+  }]
+])
+```
+
 ### JSON
 ```js
 var merry = require('merry')
