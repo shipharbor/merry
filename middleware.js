@@ -41,8 +41,9 @@ function schemaMiddleware (schema) {
         })
         return done(parseErr)
       }
-      validate(json)
-      if (validate.errors) {
+
+      var isValid = validate(json)
+      if (!isValid) {
         res.statusCode = 400
         var validationErr = error({
           message: 'error validating JSON',
@@ -51,9 +52,9 @@ function schemaMiddleware (schema) {
         })
         return done(validationErr)
       }
+
       ctx.body = json
       done()
     })
   }
 }
-
