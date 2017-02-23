@@ -360,7 +360,10 @@ argument.
 
 ```js
 var gate = merry.gateway({
-  middleware: [ require('my-mw'), require('other-mw') ]
+  middleware: {
+    someMiddleware: require('my-mw'),
+    otherMiddleware: require('other-mw')
+  }
 })
 ```
 
