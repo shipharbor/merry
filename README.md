@@ -70,6 +70,7 @@ customize merry to fit your use case. We hope you have a good time using it.
 - [Encoders](#encoders)
 - [Parsers](#parsers)
 - [Middleware](#middleware)
+- [Gateway](#gateway)
 - [Plugins](#plugins)
 - [API](#api)
 - [Installation](#installation)
@@ -255,6 +256,40 @@ app.router([
 ])
 ```
 
+### Multipart
+Multipart uploads are used to upload files from the browser. Multiple files can
+be streamed in a single request, so our handler needs to handle multiple
+streams. We use the
+[multipart-read-stream](https://github.com/yoshuawuyts/multipart-read-stream/)
+package under the hood to handle this.
+
+```js
+var merry = require('merry')
+var path = require('path')
+var pump = require('pump')
+var fs = require('fs')
+
+var app = merry()
+app.router([
+  ['/string', {
+    put: function (req, res, ctx, done) {
+      var multipartStream = merry.parse.multipart(req, handler)
+
+      pump(req, multipartStream, function (err) {
+        if (err) res.end('server error')
+        res.end()
+      })
+
+      function handler (fieldname, file, filename) {
+        console.log('reading file ' + filename + ' from field ' + fieldname)
+        var fileStream = fs.createWriteStream(path.join('/tmp', filename))
+        pump(file, fileStream)
+      }
+    }
+  }]
+])
+```
+
 ### JSON
 ```js
 var merry = require('merry')
@@ -333,7 +368,48 @@ function myCoolEndpoint (req, res, ctx, done) {
 }
 ```
 
-### Middleware Gateway
+### JSON Schema
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var app = merry()
+
+var schema = `{
+  "type": "object",
+  "properties": {
+    "hello": { "type": "string" }
+  }
+}`
+
+app.router([
+  ['/foo', mw([mw.schema(schema), myCoolEndpoint])]
+])
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('hot code bod', ctx.body)
+  done(null, 'success!')
+}
+```
+
+### Multipart
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var app = merry()
+
+app.router([
+  ['/foo', mw([mw.multipart(), myCoolEndpoint])]
+])
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('multiparty', ctx.files)
+  done(null, 'success!')
+}
+```
+
+## Gateway
 An alternate way of consuming middleware is through `merry.gateway`. This
 creates an object on which you can set values, which might result in something
 slightly more readable when consuming lots of middleware.
@@ -360,7 +436,10 @@ argument.
 
 ```js
 var gate = merry.gateway({
-  middleware: [ require('my-mw'), require('other-mw') ]
+  middleware: {
+    someMiddleware: require('my-mw'),
+    otherMiddleware: require('other-mw')
+  }
 })
 ```
 
@@ -516,7 +595,7 @@ $ npm install merry
 ## See Also
 - [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
-- [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
