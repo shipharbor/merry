@@ -256,7 +256,7 @@ app.router([
 ])
 ```
 
-### Multipart Form Uploads
+### Multipart
 Multipart uploads are used to upload files from the browser. Multiple files can
 be streamed in a single request, so our handler needs to handle multiple
 streams. We use the
@@ -388,6 +388,23 @@ app.router([
 
 function myCoolEndpoint (req, res, ctx, done) {
   console.log('hot code bod', ctx.body)
+  done(null, 'success!')
+}
+```
+
+### Multipart
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var app = merry()
+
+app.router([
+  ['/foo', mw([mw.multipart(), myCoolEndpoint])]
+])
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('multiparty', ctx.files)
   done(null, 'success!')
 }
 ```

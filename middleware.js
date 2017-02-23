@@ -1,10 +1,13 @@
 var isMyJsonValid = require('is-my-json-valid')
+var concat = require('concat-stream')
 var mapLimit = require('map-limit')
 var assert = require('assert')
+var pump = require('pump')
 
 var error = require('./error')
 var parse = require('./parse')
 
+middleware.multipart = multipartMiddleware
 middleware.schema = schemaMiddleware
 module.exports = middleware
 
@@ -57,3 +60,35 @@ function schemaMiddleware (schema) {
   }
 }
 
+function multipartMiddleware () {
+  return function (req, res, ctx, done) {
+    // TODO: validate headers
+    if (!ctx.files) ctx.files = {}
+
+    var multipartStream = parse.multipart(req, handler)
+    pump(req, multipartStream, function (err) {
+      if (err) {
+        var parseErr = error({
+          message: 'Error parsing multipart upload',
+          statusCode: 400
+        })
+        return done(parseErr)
+      }
+      res.end()
+    })
+
+    function handler (fieldname, file, filename, encoding, mimetype) {
+      // FIXME: handle errors and timeouts
+      pump(file, concat(function (buf) {
+        var file = {
+          encoding: encoding,
+          fieldname: fieldname,
+          file: buf,
+          filename: filename,
+          mimetype: mimetype
+        }
+        ctx.files[fieldname] = file
+      }))
+    }
+  }
+}
