@@ -368,6 +368,30 @@ function myCoolEndpoint (req, res, ctx, done) {
 }
 ```
 
+### JSON Schema
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var app = merry()
+
+var schema = `{
+  "type": "object",
+  "properties": {
+    "hello": { "type": "string" }
+  }
+}`
+
+app.router([
+  ['/foo', mw([mw.schema(schema), myCoolEndpoint])]
+])
+
+function myCoolEndpoint (req, res, ctx, done) {
+  console.log('hot code bod', ctx.body)
+  done(null, 'success!')
+}
+```
+
 ## Gateway
 An alternate way of consuming middleware is through `merry.gateway`. This
 creates an object on which you can set values, which might result in something
@@ -554,7 +578,7 @@ $ npm install merry
 ## See Also
 - [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
-- [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
