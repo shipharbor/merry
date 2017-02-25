@@ -81,7 +81,6 @@ Given the following `index.js`:
 var merry = require('merry')
 var http = require('http')
 
-var notFound = merry.notFound
 var error = merry.error
 
 var env = merry.env({ PORT: 8080 })
@@ -94,7 +93,6 @@ app.router([
     put: apiPutPath,
     get: apiGetPath
   } ],
-  [ '/404', notFound() ]
 ])
 
 var server = http.createServer(app.start())
@@ -460,9 +458,6 @@ more details.
 ### env = merry.env(settings)
 Create a new configuration client that reads environment variables from
 `process.env` and validates them against configuration.
-
-### notFound = merry.notFound()
-Create a naive `/404` handler that can be passed into a path.
 
 ### routeHandler = merry.cors(handler)
 Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
