@@ -2,8 +2,9 @@ var merry = require('./')
 var http = require('http')
 
 var notFound = merry.notFound
+var mw = merry.middleware
 var error = merry.error
-var cors = merry.cors({
+var cors = mw.cors({
   methods: 'POST, GET'
 })
 
@@ -17,13 +18,13 @@ app.router([
   [ '/error', function (req, res, ctx, done) {
     done(error(500, 'server error!'))
   }],
-  ['/cors', {
-    get: cors(function (req, res, ctx, done) {
-      done(null, 'hello very explicit GET')
-    })
-  }],
+  [ '/cors', mw([cors, myOtherEndPoint]) ],
   [ '/404', notFound() ]
 ])
+
+function myOtherEndPoint (req, res, ctx, done) {
+  done(null, 'its so shiny... again')
+}
 
 var server = http.createServer(app.start())
 server.listen(env.PORT)

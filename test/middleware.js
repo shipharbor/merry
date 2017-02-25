@@ -211,6 +211,68 @@ tape('middleware.schema', function (t) {
   })
 })
 
+tape('middleware.cors', function (t) {
+  t.test('should set default cors headers on a handler', function (t) {
+    t.plan(6)
+    var mw = merry.middleware
+    var cors = mw.cors()
+    var app = merry({ logStream: devnull() })
+
+    app.router([
+      '/', mw([cors, myEndpoint])
+    ])
+
+    function myEndpoint (req, res, ctx, done) {
+      t.equal(res.getHeader('access-control-allow-origin'), '*', 'cors allow origin in *')
+      t.equal(res.getHeader('access-control-allow-headers'), 'Content-Type, Accept, X-Requested-With', 'cors content type is ok')
+      t.equal(res.getHeader('access-control-allow-credentials'), true, 'cors credentials are commin through')
+      t.equal(res.getHeader('access-control-allow-methods'), 'PUT, POST, DELETE, GET, OPTIONS', 'cors methods are ok')
+      done()
+    }
+
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+
+  t.test('should accept a single cors method on a handler', function (t) {
+    t.plan(3)
+    var mw = merry.middleware
+    var cors = mw.cors({ methods: 'GET' })
+    var app = merry({ logStream: devnull() })
+
+    app.router([
+      '/', mw([cors, myEndpoint])
+    ])
+
+    function myEndpoint (req, res, ctx, done) {
+      t.equal(res.getHeader('access-control-allow-methods'), 'GET', 'cors sets get method')
+      done()
+    }
+
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+
+  t.test('should accept multiple cors methods on a handler', function (t) {
+    t.plan(3)
+    var mw = merry.middleware
+    var cors = mw.cors({ methods: ['GET', 'PUT'] })
+    var app = merry({ logStream: devnull() })
+
+    app.router([
+      '/', mw([cors, myEndpoint])
+    ])
+
+    function myEndpoint (req, res, ctx, done) {
+      t.equal(res.getHeader('access-control-allow-methods'), 'GET, PUT', 'cors sets get and put methods')
+      done()
+    }
+
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+})
+
 function performGet (server, t, cb) {
   cb = cb || noop
   server.listen(function () {

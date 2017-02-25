@@ -255,34 +255,6 @@ app.router([
 ])
 ```
 
-## CORS
-We support [`Cross Origin Resource Sharing`]
-(https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
-by exposing it as `merry.cors`. You can specify methods, origin, credentials,
-and headers you want your route to allow, or leave it up to the defaults.
-
-```js
-var merry = require('merry')
-
-var cors = merry.cors({
-  methods: 'GET',
-  origin: 'http://localhost:8080'
-})
-
-var app = merry()
-app.router([
-  ['/json', {
-    put: function (req, res, ctx, done) {
-      merry.parse.json(req, function (err, json) {
-        if (err) return done(err)
-        ctx.json = json
-        done(null, 'done parsing json')
-      })
-    }
-  }]
-])
-```
-
 ### JSON Schema
 One of the most common things for your code to consume is probably going to be
 JSON. The problem is that it doesn't always come back in the nice format you
@@ -373,6 +345,32 @@ argument.
 var gate = merry.gateway({
   middleware: [ require('my-mw'), require('other-mw') ]
 })
+```
+
+### Middleware CORS
+We support [`Cross Origin Resource Sharing`]
+(https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
+by exposing it as `merry.cors`. You can specify methods, origin, credentials,
+and headers you want your route to allow, or leave it up to the defaults.
+
+```js
+var merry = require('merry')
+
+var mw = merry.middleware
+var cors = mw.cors({
+  methods: 'GET',
+  origin: 'http://localhost:8080'
+})
+
+var app = merry()
+app.router([
+  [ '/cors', mw([cors, myEndpoint]) ]
+])
+
+function myEndpoint (req, res, ctx, done) {
+  console.log(res.getHeader('access-control-allow-origin')) // 'http://localhost:8080'
+  done(null, 'woah cors headers are all set')
+}
 ```
 
 ## Plugins
@@ -475,7 +473,7 @@ Create a new configuration client that reads environment variables from
 ### notFound = merry.notFound()
 Create a naive `/404` handler that can be passed into a path.
 
-### cors = merry.cors(opts)
+### cors = merry.middleware.cors(opts)
 You can pass on a few options to the cors wrapper to handle the specific headers 
 you might need. If not tho, we gotchu with some defaults.
 - __opts.headers__: sets up headers that you want browsers to be able to access.
