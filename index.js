@@ -13,7 +13,6 @@ var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
-Merry.notFound = notFound
 Merry.env = envobj
 Merry.cors = cors
 
@@ -168,17 +167,6 @@ Merry.prototype._onerror = function () {
       console.error(err.stack)
       process.exit(1)
     })
-  }
-}
-
-function notFound () {
-  var err = Merry.error({
-    statusCode: 404,
-    message: 'not found'
-  })
-
-  return function (req, res, params, done) {
-    done(err)
   }
 }
 

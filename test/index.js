@@ -92,40 +92,19 @@ tape('http handlers', function (t) {
 })
 
 tape('status code', function (t) {
-  t.test('should send back a 404 when no route is found', function (t) {
-    t.plan(2)
-    var app = merry({ logStream: devnull() })
-    app.router([
-      [ '/', function (req, res, ctx, done) {
-        done(null, 'oi')
-      }],
-      [ '/404', merry.notFound() ]
-    ])
-
-    var server = http.createServer(app.start())
-    server.listen(function () {
-      var port = getPort(server)
-      var opts = {
-        method: 'GET',
-        uri: 'http://localhost:' + port + '/hello'
-      }
-      request(opts, function (err, req) {
-        t.ifError(err, 'no err')
-        t.equal(req.statusCode, 404, 'not found')
-        server.close()
-      })
-    })
-  })
-
   t.test('should log 400 errors as warn', function (t) {
     t.plan(4)
     var logStream = new stream.PassThrough()
+    var error = merry.error
     var app = merry({ logStream: logStream })
     app.router([
       [ '/', function (req, res, ctx, done) {
         done(null, 'oi')
       }],
-      [ '/404', merry.notFound() ]
+      [ '/404', function (req, res, ctx, done) {
+        var err = error({ statusCode: 404, message: 'not found' })
+        done(err)
+      }]
     ])
 
     var server = http.createServer(app.start())
