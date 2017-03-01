@@ -347,32 +347,6 @@ var gate = merry.gateway({
 })
 ```
 
-### Middleware CORS
-We support [`Cross Origin Resource Sharing`]
-(https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
-by exposing it as `merry.cors`. You can specify methods, origin, credentials,
-and headers you want your route to allow, or leave it up to the defaults.
-
-```js
-var merry = require('merry')
-
-var mw = merry.middleware
-var cors = mw.cors({
-  methods: 'GET',
-  origin: 'http://localhost:8080'
-})
-
-var app = merry()
-app.router([
-  [ '/cors', mw([cors, myEndpoint]) ]
-])
-
-function myEndpoint (req, res, ctx, done) {
-  console.log(res.getHeader('access-control-allow-origin')) // 'http://localhost:8080'
-  done(null, 'woah cors headers are all set')
-}
-```
-
 ## Plugins
 Plugins provide a way to access framework internals in a clean way. You can
 register plugins through `app.use()`.
@@ -386,6 +360,11 @@ app.use({
   }
 })
 ```
+
+## CORS
+Merry's core doesn't directly come with CORS support, however, we built out
+[cors-middleware](https://github.com/shipharbor/cors-middleware) to help
+you with your cors needs. 
 
 ## API
 ### app = merry(opts)
@@ -473,24 +452,6 @@ Create a new configuration client that reads environment variables from
 ### notFound = merry.notFound()
 Create a naive `/404` handler that can be passed into a path.
 
-### cors = merry.middleware.cors(opts)
-You can pass on a few options to the cors wrapper to handle the specific headers 
-you might need. If not tho, we gotchu with some defaults.
-- __opts.headers__: sets up headers that you want browsers to be able to access.
-Takes an array. Defaults to `['Content-Type', 'Accept', 'X-Requested-With']`.
-- __opts.methods__: these are methods that are allowed to access your resource.
-Also takes in an array. Will default to the usual suspects of
-`['PUT', 'POST', 'DELETE', 'GET', 'OPTIONS']`
-- __opts.credentials__: this indicates whether or not a request can be made 
-using credentials. Will default to true.
-- __opts.origin__: this specifies a URI that can access your resource. Takes in 
-a string and will default to wildcard, `'*'`
-
-
-### routeHandler = cors(handler)
-Add CORS support for handlers. Adds a handler for the HTTP `OPTIONS` method to
-catch preflight requests.
-
 ### routeHandler = merry.middleware(handlers)
 Takes an array of handler functions. Each handler has a signature of
 `handler(req, res, ctx, done)`. `ctx` is an object onto which data can be
@@ -540,6 +501,7 @@ $ npm install merry
 - [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
 - [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [cors-middleware](https://github.com/shipharbor/cors-middleware) - set cors headers
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
