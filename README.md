@@ -272,41 +272,6 @@ app.router([
 ])
 ```
 
-### JSON Schema
-One of the most common things for your code to consume is probably going to be
-JSON. The problem is that it doesn't always come back in the nice format you
-might need. But we gotchu: the `middleware` portion of Merry validates that
-for you. `middleware.schema` takes in a JSON schema and validates the request
-body against it.
-
-```js
-var merry = require('merry')
-
-var mw = merry.middleware
-var mySchema = `
-  {
-    "required": true,
-    "type": "object",
-    "properties": {
-      "hello": {
-        "required": true,
-        "type": "string"
-      }
-    }
-  }
-`
-
-var app = merry()
-app.router([
-  ['/foo', mw([mw.schema(mySchema), myCoolEndpoint])]
-])
-
-function myCoolEndpoint (req, res, ctx, done) {
-  console.log('hot code bod', ctx.body)
-  done(null, 'success!')
-}
-```
-
 ## Middleware
 Middleware is a way to handle access to `req` and `res` objects across multiple
 functions when working with req-res cycle of an application. With merry, you can
@@ -479,10 +444,6 @@ The last handler in the array of handlers is expected to send back a response:
 the `done()` function has a signature of
 `done(err|null, null|readableStream|string|object)`.
 
-### middleware.schema(string)
-Takes a JSON string to validate the response against. It will parse and validate
-the `res` against the schema, and attach it to `ctx.body` as part of middleware.
-
 ### merry.parse.json(req, handler(err, object))
 Parse JSON in request body. Returns an object.
 
@@ -517,6 +478,7 @@ $ npm install merry
 - [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
 - [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [json-schema-middleware](https://github.com/shipharbor/json-schema-middleware) - json schema validator
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
