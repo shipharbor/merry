@@ -23,7 +23,6 @@
   "dependencies": {
     "boom": "^4.2.0",
     "concat-stream": "^1.6.0",
-    "corsify": "^2.1.0",
     "envobj": "^1.0.2",
     "explain-error": "^1.0.3",
     "fast-json-parse": "^1.0.2",

@@ -255,23 +255,6 @@ app.router([
 ])
 ```
 
-### JSON
-```js
-var merry = require('merry')
-var app = merry()
-app.router([
-  ['/json', {
-    put: function (req, res, ctx, done) {
-      merry.parse.json(req, function (err, json) {
-        if (err) return done(err)
-        ctx.json = json
-        done(null, 'done parsing json')
-      })
-    }
-  }]
-])
-```
-
 ### JSON Schema
 One of the most common things for your code to consume is probably going to be
 JSON. The problem is that it doesn't always come back in the nice format you
@@ -378,6 +361,11 @@ app.use({
 })
 ```
 
+## CORS
+Merry's core doesn't directly come with CORS support, however, we built out
+[cors-middleware](https://github.com/shipharbor/cors-middleware) to help
+you with your cors needs. 
+
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
@@ -464,10 +452,6 @@ Create a new configuration client that reads environment variables from
 ### notFound = merry.notFound()
 Create a naive `/404` handler that can be passed into a path.
 
-### routeHandler = merry.cors(handler)
-Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
-catch preflight requests.
-
 ### routeHandler = merry.middleware(handlers)
 Takes an array of handler functions. Each handler has a signature of
 `handler(req, res, ctx, done)`. `ctx` is an object onto which data can be
@@ -517,6 +501,7 @@ $ npm install merry
 - [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
 - [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [cors-middleware](https://github.com/shipharbor/cors-middleware) - set cors headers
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
@@ -535,4 +520,3 @@ $ npm install merry
 [11]: https://github.com/feross/standard
 [pino]: https://github.com/pinojs/pino
 [ndjson]: http://ndjson.org/
-[corsify]: https://github.com/Raynos/corsify

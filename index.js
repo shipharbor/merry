@@ -5,7 +5,6 @@ var walk = require('server-router/walk')
 var serverSink = require('server-sink')
 var isStream = require('is-stream')
 var mapLimit = require('map-limit')
-var corsify = require('corsify')
 var envobj = require('envobj')
 var assert = require('assert')
 var xtend = require('xtend')
@@ -15,7 +14,6 @@ var pump = require('pump')
 
 Merry.notFound = notFound
 Merry.env = envobj
-Merry.cors = cors
 
 Merry.middleware = require('./middleware')
 Merry.gateway = require('./gateway')
@@ -179,39 +177,6 @@ function notFound () {
 
   return function (req, res, params, done) {
     done(err)
-  }
-}
-
-function cors (opts) {
-  var _cors = corsify(opts)
-  return function (handler) {
-    var obj = {}
-    if (typeof handler === 'object') {
-      var keys = Object.keys(handler)
-
-      assert.equal(keys.length, 1, 'merry.cors: we can only corsify a single method per endpoint')
-
-      keys.forEach(function (key) {
-        var _handler = toCors(handler[key])
-        obj.options = _handler
-        obj[key] = _handler
-      })
-    } else {
-      var _handler = toCors(handler)
-      obj.options = _handler
-      obj.get = _handler
-    }
-
-    return obj
-
-    function toCors (handler) {
-      return function (req, res, ctx, done) {
-        var _handler = _cors(function (req, res) {
-          handler(req, res, ctx, done)
-        })
-        _handler(req, res)
-      }
-    }
   }
 }
 

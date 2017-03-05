@@ -14,11 +14,6 @@ app.router([
   [ '/error', function (req, res, ctx, done) {
     done(error(500, 'server error!'))
   }],
-  ['/api', {
-    get: function (req, res, ctx, done) {
-      done(null, 'hello very explicit GET')
-    }
-  }],
   [ '/404', notFound() ]
 ])
 
