@@ -1,6 +1,6 @@
+var middleware = require('./middleware')
 var mutate = require('xtend/mutable')
 var assert = require('assert')
-var middleware = require('./middleware')
 
 module.exports = gateway
 
