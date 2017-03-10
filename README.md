@@ -311,7 +311,6 @@ var app = merry()
 app.router([
   ['/foo', {
     get: gate({
-      schema: fs.readFileSync(path.join(__dirname, 'schemas/my-cool-schema')),
       handler: require('./handlers/my-cool-handler')
     })
   }]
