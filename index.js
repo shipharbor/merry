@@ -1,10 +1,13 @@
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
 var fromString = require('from2-string')
+var envobj = require('envobj')
 var assert = require('assert')
 var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
+
+Merry.env = envobj
 
 module.exports = Merry
 
@@ -38,15 +41,48 @@ Merry.prototype.defaultRoute = function (handler) {
   this.router.route(method, route, handle.handle)
 }
 
+Merry.prototype.start = function () {
+  assert.ok(this.router, 'merry.start: router was not found. Did you run app.router() ?')
+  this._onerror()
+  return this.router
+}
+
 Merry.prototype.listen = function (port) {
   assert.equal(typeof port, 'number', 'Merry.listen: port should be type number')
 
+  var server = http.createServer(this.router.start())
   this._port = port
-  http.createServer(this.router.start()).listen(this._port, this.onlisten)
+
+  this._onerror()
+  server.listen(this._port, this.onlisten)
 }
 
 Merry.prototype.onlisten = function () {
-  this.log.info('Merry server listening at port ' + this._port)
+  this.log.info({
+    message: 'listening',
+    port: this._port,
+    env: process.env.NODE_ENV || 'undefined'
+  })
+}
+
+Merry.prototype._onerror = function () {
+  var self = this
+
+  if (process.listenerCount('uncaughtException') === 0) {
+    process.once('uncaughtException', function (err) {
+      self.log.fatal(err)
+      console.error(err.stack)
+      process.exit(1)
+    })
+  }
+
+  if (process.listenerCount('unhandledRejection') === 0) {
+    process.once('unhandledRejection', function (err) {
+      self.log.fatal(err)
+      console.error(err.stack)
+      process.exit(1)
+    })
+  }
 }
 
 function Ctx (req, res, log) {

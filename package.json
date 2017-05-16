@@ -36,7 +36,7 @@
     "pino": "^4.0.0",
     "pino-colada": "^1.0.1",
     "pump": "^1.0.1",
-    "server-router": "^4.0.0",
+    "server-router": "^5.1.0",
     "server-sink": "^1.0.0",
     "xtend": "^4.0.1"
   },
