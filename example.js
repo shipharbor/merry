@@ -7,7 +7,7 @@ app.route('GET', '/', function (req, res, ctx) {
   ctx.send(200, { foo: 'butts' })
 })
 
-app.default(function (req, res, ctx) {
+app.route('default', function (req, res, ctx) {
   ctx.log.info('Route doesnt exist')
   ctx.send(404, { cuteError: 'nada here' })
 })
