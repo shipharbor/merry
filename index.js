@@ -1,8 +1,10 @@
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
+var fromString = require('from2-string')
 var assert = require('assert')
 var http = require('http')
 var pino = require('pino')
+var pump = require('pump')
 
 module.exports = Merry
 
@@ -59,7 +61,11 @@ Ctx.prototype.send = function (statusCode, body, headers) {
   }
 
   this.res.writeHead(statusCode, headers)
-  this.res.end(body)
+  pump(fromString(body), this.res, this.ondone)
+}
+
+Ctx.prototype.ondone = function (err) {
+  if (err) this.log.error(err)
 }
 
 function Handler (log, handler) {
