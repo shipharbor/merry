@@ -14,27 +14,28 @@ function Merry (opts) {
 
   this.log = pino({ level: opts.logLevel || 'info' }, opts.logStream || process.stdout)
   this.router = serverRouter()
+  this._port = null
 }
 
 Merry.prototype.route = function (method, route, handler) {
   assert.equal(typeof handler, 'function', 'Merry.route: handler should be type function')
   assert.equal(typeof method, 'string', 'Merry.route: method should be type string')
   assert.equal(typeof route, 'string', 'Merry.route: route should be type string')
-  var self = this
 
-  this.router.route(method, route, function (params, req, res) {
-    var ctx = new Ctx(req, res, self.log)
-    handler(req, res, ctx)
-  })
+  // ease things for V8 by setting handler as prototype
+  var handle = new Handler(this.log, handler)
+  this.router.route(method, route, handle.handle)
 }
 
 Merry.prototype.listen = function (port) {
   assert.equal(typeof port, 'number', 'Merry.listen: port should be type number')
-  var self = this
 
-  http.createServer(this.router.start()).listen(port, function () {
-    self.log.info('Merry server listening at port ' + port)
-  })
+  this._port = port
+  http.createServer(this.router.start()).listen(this._port, this.onlisten)
+}
+
+Merry.prototype.onlisten = function () {
+  this.log.info('Merry server listening at port ' + this._port)
 }
 
 function Ctx (req, res, log) {
@@ -59,4 +60,15 @@ Ctx.prototype.send = function (statusCode, body, headers) {
 
   this.res.writeHead(statusCode, headers)
   this.res.end(body)
+}
+
+function Handler (log, handler) {
+  this.handler = handler
+  this.log = log
+}
+
+Handler.prototype.handle = function (params, req, res) {
+  var ctx = new Ctx(req, res, this.log)
+  ctx.params = params
+  this.handler(req, res, this.ctx)
 }
