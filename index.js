@@ -15,16 +15,25 @@ function Merry (opts) {
   assert.equal(typeof opts, 'object', 'Merry: opts should be type object')
 
   this.log = pino({ level: opts.logLevel || 'info' }, opts.logStream || process.stdout)
-  this.router = serverRouter()
+  this.router = serverRouter({ default: '/notFoundHandlerRoute' })
   this._port = null
 }
 
 Merry.prototype.route = function (method, route, handler) {
+  if (method === 'default') return this.defaultRoute(handler)
+
   assert.equal(typeof handler, 'function', 'Merry.route: handler should be type function')
   assert.equal(typeof method, 'string', 'Merry.route: method should be type string')
   assert.equal(typeof route, 'string', 'Merry.route: route should be type string')
 
   // ease things for V8 by setting handler as prototype
+  var handle = new Handler(this.log, handler)
+  this.router.route(method, route, handle.handle)
+}
+
+Merry.prototype.defaultRoute = function (handler) {
+  var method = 'GET'
+  var route = '/notFoundHandlerRoute'
   var handle = new Handler(this.log, handler)
   this.router.route(method, route, handle.handle)
 }
