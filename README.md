@@ -48,7 +48,7 @@
 
 Merry is a little Node framework that helps you build performant applications
 with little effort. We don't think that "fast" and "cute" should be mutually
-exclusive. Out of the box we've included standardized logging, consistent error
+exclusive. Out of the box we've included consistent logging, standardized error
 handling, a clean streams API and plenty of nuts, bolts and options to
 customize merry to fit your use case. We hope you have a good time using it.
 :v: _-Team Merry_
@@ -67,71 +67,36 @@ customize merry to fit your use case. We hope you have a good time using it.
 - [Error Handling](#error-handling)
 - [Configuration](#configuration)
 - [Routing](#routing)
-- [Encoders](#encoders)
-- [Parsers](#parsers)
-- [Middleware](#middleware)
-- [Plugins](#plugins)
 - [API](#api)
 - [Installation](#installation)
 - [See Also](#see-also)
 
 ## Usage
-Given the following `index.js`:
 ```js
-var merry = require('merry')
-var http = require('http')
+var merry = require('./')
 
-var notFound = merry.notFound
-var error = merry.error
-
-var env = merry.env({ PORT: 8080 })
 var app = merry()
 
-app.router([
-  [ '/', homePath ],
-  [ '/error', errorPath ],
-  [ '/api', {
-    put: apiPutPath,
-    get: apiGetPath
-  } ],
-  [ '/404', notFound() ]
-])
+app.route('GET', '/', function (req, res, ctx) {
+  ctx.log.info('oh hey, a request here')
+  ctx.send(200, { cute: 'butts' })
+})
 
-var server = http.createServer(app.start())
-server.listen(env.PORT)
+app.route('default', function (req, res, ctx) {
+  ctx.log.info('Route doesnt exist')
+  ctx.send(404, { message: 'nada butts here' })
+})
 
-function homePath (req, res, ctx, done) {
-  done(null, 'hello world')
-}
-
-function errorPath (req, res, ctx, done) {
-  done(null, 'hello world')
-}
-
-function apiGetPath (req, res, ctx, done) {
-  done(null, 'hello HTTP GET')
-}
-
-function apiPutPath (req, res, ctx, done) {
-  done(null, 'hello HTTP PUT')
-}
+app.listen(8080)
 ```
 
-The application will now start printing log messages to stdout. `merry` ships
-with a CLI tool called `merry` that formats the messages for humans:
 ```sh
 $ node index.js | merry
 ```
 
 ## Logging
 Merry uses the `pino` logger under the hood. When you create a new `merry` app,
-we enable a log forwarder that by default prints all logs to `process.stdout`:
-```js
-var merry = require('merry')
-var app = merry()
-
-app.log.info('look at the logs!')
-```
+we enable a log forwarder that by default prints all logs to `process.stdout`.
 
 There are different log levels that can be used. The possible log levels are:
 - __debug:__ used for developer annotation only, should not be enable in
@@ -145,11 +110,13 @@ There are different log levels that can be used. The possible log levels are:
 var merry = require('merry')
 var app = merry()
 
-app.log.debug('it works!')
-app.log.info('hey')
-app.log.warn('oh')
-app.log.error('oh no!')
-app.log.fatal('send help')
+app.route('GET', '/', function (req, res, ctx) {
+  ctx.log.debug('it works!')
+  ctx.log.info('hey')
+  ctx.log.warn('oh')
+  ctx.log.error('oh no!')
+  ctx.log.fatal('send help')
+})
 ```
 
 The difference between an expected and unexpected error is that the first is
@@ -158,15 +125,7 @@ respond, and the latter is caused by the system (e.g. there's no database) and
 the system doesn't know how to handle it.
 
 ## Error handling
-The `done(err, stream)` callback can either take an error or a readable stream. If an
-error has `.statusCode` property, that value will be used for `res.statusCode`.
-Else it'll use any status code that was set previously, and default to `500`.
-
-:warning: the error will be logged as loglevel `'warn'`. It's important to
-not disclose any internal information in `4xx` type errors, as it can lead to
-serious security vulnerabilities. All errors in other ranges (typically `5xx`)
-will send back the message `'server error'` and are logged as loglevel
-`'error'`.
+[tbi]
 
 ## Configuration
 Generally there are two ways of passing configuration into an application.
@@ -180,8 +139,9 @@ argument passed in, and optionally falls back to a default if no value is
 passed in. To set the (very common) `$PORT` variable to default to `8080` do:
 ```js
 var merry = require('merry')
-var env = merry.env({ PORT: 8080 })
-console.log('port: ' + env.PORT)
+var env = { PORT: 8080 }
+var app = merry({ env: env })
+app.listen(app.env.PORT)
 ```
 
 And then from the CLI do:
@@ -202,181 +162,16 @@ methods out there. Routes look like this:
 ```js
 var merry = require('merry')
 var app = merry()
-app.router([
-  ['/', handleIndex],
-  ['/foo', handleFoo, [
-    ['/:bar', handleFoobarPartial]
-  ]]
-])
+app.route('GET', '/', handleIndex)
+app.route('PUT', '/foo', handleFoo)
+app.route('GET', '/foo/:bar', handleFoobarPartial)
+app.listen()
 ```
 
 Partial routes can be set using the `':'` delimiter. Any route that's
 registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
-
-## Encoders
-If `Object` and `Array` are the data primitives of JavaScript, JSON is the
-primitive of APIs. By passing JSON to the `done(null, json)` Merry sets the right
-headers on `res` and converts it to a readable stream for the router to work.
-```js
-var merry = require('merry')
-var http = require('http')
-
-var app = merry()
-app.router(['/', function (req, res, ctx, done) {
-  done(null, { message: 'hello JSON' })
-}])
-
-var server = http.createServer(app.start())
-server.listen(8080)
-```
-
-
-## Parsers
-To make it easy to operate on common data types, we've included body parsers.
-These functions take the `req` readable stream, concatenate it and return the resulting
-data, or an error if it didn't succeed.
-
-### Strings
-```js
-var merry = require('merry')
-var app = merry()
-app.router([
-  ['/string', {
-    put: function (req, res, ctx, done) {
-      merry.parse.string(req, function (err, string) {
-        if (err) return done(err)
-        ctx.string = string
-        done(null, 'done parsing string')
-      })
-    }
-  }]
-])
-```
-
-### JSON
-```js
-var merry = require('merry')
-var app = merry()
-app.router([
-  ['/json', {
-    put: function (req, res, ctx, done) {
-      merry.parse.json(req, function (err, json) {
-        if (err) return done(err)
-        ctx.json = json
-        done(null, 'done parsing json')
-      })
-    }
-  }]
-])
-```
-
-### JSON Schema
-One of the most common things for your code to consume is probably going to be
-JSON. The problem is that it doesn't always come back in the nice format you
-might need. But we gotchu: the `middleware` portion of Merry validates that
-for you. `middleware.schema` takes in a JSON schema and validates the request
-body against it.
-
-```js
-var merry = require('merry')
-
-var mw = merry.middleware
-var mySchema = `
-  {
-    "required": true,
-    "type": "object",
-    "properties": {
-      "hello": {
-        "required": true,
-        "type": "string"
-      }
-    }
-  }
-`
-
-var app = merry()
-app.router([
-  ['/foo', mw([mw.schema(mySchema), myCoolEndpoint])]
-])
-
-function myCoolEndpoint (req, res, ctx, done) {
-  console.log('hot code bod', ctx.body)
-  done(null, 'success!')
-}
-```
-
-## Middleware
-Middleware is a way to handle access to `req` and `res` objects across multiple
-functions when working with req-res cycle of an application. With merry, you can
-set up a middleware set of functions to handle a request. Only the last handler
-will propogate data, all others handle errors.
-
-```js
-var merry = require('merry')
-
-var mw = merry.middleware
-var app = merry()
-app.router([
-  ['/foo', mw([otherHandler, myCoolEndpoint])]
-])
-
-function otherHandler (req, res, ctx, done) {
-  ctx.foo = 'bar'
-  done()
-}
-
-function myCoolEndpoint (req, res, ctx, done) {
-  console.log('woah look at me, shiny code', ctx.foo)
-  done(null, 'its so shiny')
-}
-```
-
-### Middleware Gateway
-An alternate way of consuming middleware is through `merry.gateway`. This
-creates an object on which you can set values, which might result in something
-slightly more readable when consuming lots of middleware.
-
-```js
-var merry = require('merry')
-
-var gate = merry.gateway()
-var app = merry()
-app.router([
-  ['/foo', {
-    get: gate({
-      schema: fs.readFileSync(path.join(__dirname, 'schemas/my-cool-schema')),
-      handler: require('./handlers/my-cool-handler')
-    })
-  }]
-]).listen(8080)
-```
-
-If you want to pass custom middleware, the gateway constructor can take an
-array of middleware. By default this is applied _after_ the built-in
-middleware. You can change the order of arguments by passing the order
-argument.
-
-```js
-var gate = merry.gateway({
-  middleware: [ require('my-mw'), require('other-mw') ]
-})
-```
-
-## Plugins
-Plugins provide a way to access framework internals in a clean way. You can
-register plugins through `app.use()`.
-
-```js
-var app = merry()
-app.use({
-  onRequest: function (req, res, done) {
-    res.statusCode = 401   // all statusCodes will now default to 401
-    done()
-  }
-})
-```
 
 ## API
 ### app = merry(opts)
@@ -385,10 +180,13 @@ Create a new instance of `merry`. Takes optional opts:
   logging
 - __opts.logStream:__ defaults to `process.stdout`. Set the output writable stream to
   write logs to
+- __opts.env:__ pass an object containing env var assertions
 
-### app.router(opts?, [routes])
-Register routes on the router. Take the following opts:
-- __default:__ (default: `'/404'`) Default route handler if no route matches
+### app.route(method, route, handler)
+Register a new handler for a route and HTTP method.
+
+### app.route('default', handler)
+Register a new default handler that will be called if no other handlers match.
 
 #### routes
 Each route has a signature of `(req, res, ctx, done)`:
@@ -396,19 +194,20 @@ Each route has a signature of `(req, res, ctx, done)`:
 - __res:__ the server's unmodified `res` object
 - __ctx:__ an object that can contain values and methods. Includes `.params`
   which are the parameters picked up from the `router` using the `:route`
-  syntax in the route
-- __done:__ a handler with a signature of `(err, stream)`, that takes either an
-  error or a readable stream. If a stream is passed it pipes the readable
-  stream to `res` until it is done.
+  syntax in the route. Includes `.log[loglevel]` which can be used for logging
+  and `.send(statusCode, data, [headers])` which can be used to send data.
+  `send()` efficiently encodes objects to JSON and will set the appropriate
+  headers
 
 ### handler = app.start()
-Create a handler that can be passed directly into an `http` server.
+Create a handler that can be passed directly into an `http` server. Useful if
+you want https or http2 support:
 ```js
 var merry = require('merry')
 var http = require('http')
 
 var app = merry()
-app.router(['/', handleRoute])
+app.route('GET', '/', handleRoute)
 
 var handler = app.start()
 var server = http.createServer(handler)
@@ -419,13 +218,13 @@ function handleRoute (req, res, ctx, done) {
 }
 ```
 
-### app.listen()
-Start the application directly
+### app.listen(port)
+Start the application directly and listen on a port:
 ```js
 var merry = require('merry')
 
 var app = merry()
-app.router(['/', handleRoute])
+app.route('GET', '/', handleRoute)
 app.listen(8080)
 
 function handleRoute (req, res, ctx, done) {
@@ -433,90 +232,16 @@ function handleRoute (req, res, ctx, done) {
 }
 ```
 
-### app.use(plugin)
-Register a plugin on the merry instance. A plugin is an object where the
-following values are possible:
-- __onRequest(req, res, done):__ called before a request is passed into the
-  router. `done()` can be called when the handler is done, and ready to pass
-  control to the next handler (or router if there are no handlers left). If the
-  request is terminated inside the handler, `done()` should not be called.
-
-### error = merry.error(obj)
-Create a new HTTP error from an object. Expects a `.statusCode` and a `.message`
-property. Optionally it can also take a `.data` property to send extra data to
-the client. The entire error is logg when passed into `send(error)`, but only
-`statusCode`, `message` and `data` are sent to the client.
-
-### error = merry.wrap(err, [obj])
-Convert an `Error` object into an HTTP error. Optionally takes a second
-argument which can contain the properties `.statusCode` and `.message`. Use
-this method to turn internal errors (e.g. the database returned an error) into
-messages that you can send back to the client without leaking extra data.
-
-### app.log.method(log)
-Send a log to the log output stream. See the [logging section](#logging) for
-more details.
-
-### env = merry.env(settings)
-Create a new configuration client that reads environment variables from
-`process.env` and validates them against configuration.
-
-### notFound = merry.notFound()
-Create a naive `/404` handler that can be passed into a path.
-
-### routeHandler = merry.cors(handler)
-Add CORS support for handlers. Adds an handler for the HTTP `OPTIONS` method to
-catch preflight requests.
-
-### routeHandler = merry.middleware(handlers)
-Takes an array of handler functions. Each handler has a signature of
-`handler(req, res, ctx, done)`. `ctx` is an object onto which data can be
-attached. The `ctx` object is shared from one handler onto the other. If an
-error occurs, it can be passed into `done(err)`. When a middleware handler is
-done executing, it should call `done()`.
-
-The last handler in the array of handlers is expected to send back a response:
-the `done()` function has a signature of
-`done(err|null, null|readableStream|string|object)`.
-
-### middleware.schema(string)
-Takes a JSON string to validate the response against. It will parse and validate
-the `res` against the schema, and attach it to `ctx.body` as part of middleware.
-
-### merry.parse.json(req, handler(err, object))
-Parse JSON in request body. Returns an object.
-
-### merry.parse.multipart(req|headers, [options], filehandler)
-Parse a multipart upload (e.g. uploading files to the server). Filehandler has
-an API of `filehandler(fieldname, file, filename, encoding, mimetype)`. Uses
-[multipart-read-stream](https://github.com/yoshuawuyts/multipart-read-stream)
-under the hood. Note that this does not validate, scan or fingerprint any
-content.
-
-### merry.parse.text(req, handler(err, text))
-Parse text in request body. Returns a string. You can alternativel use an alias
-of `merry.parse.string`.
-
-### gateway = merry.gateway(opts)
-Create a new gateway opts. By default includes all middleware exposed by
-`merry.middleware`. Takes the following opts:
-- __opts.middleware:__ Pass in an object containing additional middleware.
-- __opts.order:__ Specify the order in which the middleware must be applied.
-  Should be an array of strings. Defaults to whatever `Object.keys` returns.
-
-### routeHandler = gateway(opts)
-Create new routeHandler from a `gateway` instance. `opts` is configuration for
-the middleware that's used.
-
 ## Installation
 ```sh
 $ npm install merry
 ```
 
 ## See Also
-- [choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
-- [bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
-- [pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [yoshuawuyts/choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
+- [yoshuawuyts/bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
+- [yoshuawuyts/server-router](https://github.com/yoshuawuyts/server-router) - efficient server router
+- [lrlna/pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
