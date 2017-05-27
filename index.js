@@ -29,22 +29,35 @@ Merry.prototype.route = function (method, route, handler) {
   assert.equal(typeof method, 'string', 'Merry.route: method should be type string')
   assert.equal(typeof route, 'string', 'Merry.route: route should be type string')
 
+  var self = this
   // ease things for V8 by setting handler as prototype
-  var handle = new Handler(this.log, handler)
-  this.router.route(method, route, handle.handle)
+  self.router.route(method, route, routeHandler)
+
+  function routeHandler (req, res, params) {
+    var ctx = new Ctx(req, res, self.log)
+    ctx.params = params
+    handler(req, res, ctx)
+  }
 }
 
 Merry.prototype.defaultRoute = function (handler) {
+  var self = this
   var method = 'GET'
   var route = '/notFoundHandlerRoute'
-  var handle = new Handler(this.log, handler)
-  this.router.route(method, route, handle.handle)
+  self.router.route(method, route, routeHandler)
+
+  function routeHandler (req, res, params) {
+    var ctx = new Ctx(req, res, self.log)
+    ctx.params = params
+    handler(req, res, ctx)
+  }
 }
 
 Merry.prototype.start = function () {
-  assert.ok(this.router, 'merry.start: router was not found. Did you run app.router() ?')
+  assert.ok(this.router, 'merry.start: router was not found. Did you run app.route() ?')
   this._onerror()
-  return this.router
+
+  return this.router.start()
 }
 
 Merry.prototype.listen = function (port) {
@@ -53,7 +66,6 @@ Merry.prototype.listen = function (port) {
   var server = http.createServer(this.router.start())
   this._port = port
 
-  this._onerror()
   server.listen(this._port, this.onlisten)
 }
 
@@ -86,7 +98,7 @@ Merry.prototype._onerror = function () {
 }
 
 function Ctx (req, res, log) {
-  this.log = log.child()
+  this.log = log.child({ parent: 'merry:ctx' })
   this.req = req
   this.res = res
 }
@@ -99,9 +111,7 @@ Ctx.prototype.send = function (statusCode, body, headers) {
   assert.ok(body, 'Merry.Ctx.send: body should exist')
 
   if (typeof body === 'object') {
-    var message = stringify(body)
-    if (message.error) throw message.err
-    body = message.value
+    body = stringify(body)
     headers['content-type'] = 'json'
   }
 
@@ -111,15 +121,4 @@ Ctx.prototype.send = function (statusCode, body, headers) {
 
 Ctx.prototype.ondone = function (err) {
   if (err) this.log.error(err)
-}
-
-function Handler (log, handler) {
-  this.handler = handler
-  this.log = log
-}
-
-Handler.prototype.handle = function (params, req, res) {
-  var ctx = new Ctx(req, res, this.log)
-  ctx.params = params
-  this.handler(req, res, this.ctx)
 }
