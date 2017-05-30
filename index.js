@@ -23,7 +23,8 @@ function Merry (opts) {
 }
 
 Merry.prototype.route = function (method, route, handler) {
-  if (method === 'default') return this.defaultRoute(handler)
+  // if a default method is provided, second param is handler
+  if (method === 'default') return this.defaultRoute(route)
 
   assert.equal(typeof handler, 'function', 'Merry.route: handler should be type function')
   assert.equal(typeof method, 'string', 'Merry.route: method should be type string')
