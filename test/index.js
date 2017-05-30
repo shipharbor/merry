@@ -19,7 +19,7 @@ tape('http handlers', function (t) {
     var app = merry({ logStream: devnull() })
     app.route('GET', '/', function (req, res, ctx) {
       t.pass('was called')
-      ctx.send(200, { cute: 'butts' })
+      ctx.send(200, { message: 'butts' })
     })
     var server = http.createServer(app.start())
     performGet(server, t)
@@ -30,7 +30,7 @@ tape('http handlers', function (t) {
     var app = merry({ logStream: devnull() })
     app.route('OPTIONS', '/', function (req, res, ctx) {
       t.pass('was called')
-      ctx.send(200, { cute: 'butts' })
+      ctx.send(200, { message: 'butts' })
     })
     var server = http.createServer(app.start())
     server.listen(function () {

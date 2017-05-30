@@ -73,7 +73,7 @@ customize merry to fit your use case. We hope you have a good time using it.
 
 ## Usage
 ```js
-var merry = require('./')
+var merry = require('merry')
 
 var app = merry()
 
@@ -125,7 +125,49 @@ respond, and the latter is caused by the system (e.g. there's no database) and
 the system doesn't know how to handle it.
 
 ## Error handling
-[tbi]
+Error handling is different for each application. Errors come in different
+shapes, have different status codes, so we can't provide a one-size-fits-all
+solution. But we do think that having consistent error messages is useful, so
+Merry comes with a recommended pattern to handle errors.
+
+```js
+// errors.js
+exports.ENOTFOUND = function (req, res, ctx) {
+  log.warn('ENOTFOUND')
+  res.statusCode = 404
+  return JSON.stringify({
+    type: 'invalid_request_error',
+    message: 'Invalid request data'
+  })
+}
+
+exports.EDBOFFLINE  = function (req, res, ctx) {
+  log.error('EDBOFFLINE')
+  res.statusCode = 500 
+  return JSON.stringify({
+    type: 'api_error',
+    message: 'Internal server error'
+  })
+}
+```
+
+```js
+// index.js
+var errors = require('./errors')
+var merry = require('merry')
+var db = require('my-cool-db')
+
+var app = merry()
+
+app.route('GET', '/', function (req, res, ctx) {
+  db.get('some-key-from-request', function (err, data) {
+    if (err) return errors.ENOTFOUND(req, res, ctx)
+    ctx.send(200, data)
+  })
+})
+
+app.listen(8080)
+```
 
 ## Configuration
 Generally there are two ways of passing configuration into an application.
