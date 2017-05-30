@@ -66,7 +66,7 @@ Merry.prototype.listen = function (port) {
   var server = http.createServer(this.router.start())
   this._port = port
 
-  server.listen(this._port, this.onlisten)
+  server.listen(this._port, this.onlisten.bind(this))
 }
 
 Merry.prototype.onlisten = function () {
