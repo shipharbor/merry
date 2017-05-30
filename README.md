@@ -67,6 +67,7 @@ customize merry to fit your use case. We hope you have a good time using it.
 - [Error Handling](#error-handling)
 - [Configuration](#configuration)
 - [Routing](#routing)
+- [Middleware](#middleware)
 - [API](#api)
 - [Installation](#installation)
 - [See Also](#see-also)
@@ -214,6 +215,9 @@ Partial routes can be set using the `':'` delimiter. Any route that's
 registered in this was will be passed to the `ctx` argument as a key. So
 given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
+
+## Middleware
+Oh, hey, middleware are just functions, use those.
 
 ## API
 ### app = merry(opts)
