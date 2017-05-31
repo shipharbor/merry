@@ -12,4 +12,4 @@ app.route('default', function (req, res, ctx) {
   ctx.send(404, { message: 'nada butts here' })
 })
 
-app.listen(8080)
+app.listen()
