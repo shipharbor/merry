@@ -7,8 +7,6 @@ var http = require('http')
 var pino = require('pino')
 var pump = require('pump')
 
-Merry.env = envobj
-
 module.exports = Merry
 
 function Merry (opts) {
@@ -19,7 +17,7 @@ function Merry (opts) {
 
   this.log = pino({ level: opts.logLevel || 'info' }, opts.logStream || process.stdout)
   this.router = serverRouter({ default: '/notFoundHandlerRoute' })
-  this.env = opts.env || {}
+  this.env = envobj(opts.env || {})
   this._port = null
 }
 
@@ -63,8 +61,8 @@ Merry.prototype.start = function () {
 }
 
 Merry.prototype.listen = function (port) {
-  this._port = port || process.env.PORT || this.env.PORT
-  assert.ok(this._port, 'Merry.listen: port should exist')
+  this._port = port || this.env.PORT
+  assert.equal(typeof this._port, 'number', 'Merry.listen: port should be type number')
 
   var server = http.createServer(this.router.start())
 
