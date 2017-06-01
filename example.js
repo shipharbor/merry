@@ -1,6 +1,10 @@
 var merry = require('./')
 
-var app = merry()
+var env = {
+  PORT: 8080
+}
+
+var app = merry({ env: env })
 
 app.route('GET', '/', function (req, res, ctx) {
   ctx.log.info('oh hey, a request here')
@@ -12,4 +16,4 @@ app.route('default', function (req, res, ctx) {
   ctx.send(404, { message: 'nada butts here' })
 })
 
-app.listen()
+app.listen(app.env.PORT)
