@@ -15,7 +15,12 @@ function Merry (opts) {
 
   assert.equal(typeof opts, 'object', 'Merry: opts should be type object')
 
-  this.log = pino({ level: opts.logLevel || 'info' }, opts.logStream || process.stdout)
+  var logOpts = {
+    level: opts.logLevel || 'info',
+    name: opts.logName || 'merry'
+  }
+
+  this.log = pino(logOpts, opts.logStream || process.stdout)
   this.router = serverRouter({ default: '/notFoundHandlerRoute' })
   this.env = envobj(opts.env || {})
   this._port = null
@@ -35,7 +40,7 @@ Merry.prototype.route = function (method, route, handler) {
 
   function routeHandler (req, res, params) {
     var ctx = new Ctx(req, res, self.log)
-    ctx.params = params
+    ctx.params = params.params
     handler(req, res, ctx)
   }
 }
