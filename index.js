@@ -35,7 +35,6 @@ Merry.prototype.route = function (method, route, handler) {
   assert.equal(typeof route, 'string', 'Merry.route: route should be type string')
 
   var self = this
-  // ease things for V8 by setting handler as prototype
   self.router.route(method, route, routeHandler)
 
   function routeHandler (req, res, params) {
@@ -53,7 +52,7 @@ Merry.prototype.defaultRoute = function (handler) {
 
   function routeHandler (req, res, params) {
     var ctx = new Ctx(req, res, self.log)
-    ctx.params = params
+    ctx.params = params.params
     handler(req, res, ctx)
   }
 }

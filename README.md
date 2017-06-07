@@ -135,20 +135,18 @@ Merry comes with a recommended pattern to handle errors.
 // errors.js
 exports.ENOTFOUND = function (req, res, ctx) {
   log.warn('ENOTFOUND')
-  res.statusCode = 404
-  return JSON.stringify({
+  ctx.send(404, { 
     type: 'invalid_request_error',
     message: 'Invalid request data'
-  })
+  }) 
 }
 
 exports.EDBOFFLINE  = function (req, res, ctx) {
   log.error('EDBOFFLINE')
-  res.statusCode = 500 
-  return JSON.stringify({
+  ctx.send(500, { 
     type: 'api_error',
     message: 'Internal server error'
-  })
+  }) 
 }
 ```
 
