@@ -1,6 +1,7 @@
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
 var fromString = require('from2-string')
+var loghttp = require('log-http')
 var envobj = require('envobj')
 var assert = require('assert')
 var http = require('http')
@@ -15,12 +16,7 @@ function Merry (opts) {
 
   assert.equal(typeof opts, 'object', 'Merry: opts should be type object')
 
-  var logOpts = {
-    level: opts.logLevel || 'info',
-    name: opts.logName || 'merry'
-  }
-
-  this.log = pino(logOpts, opts.logStream || process.stdout)
+  this.log = pino({ level: opts.logLevel || 'info', name: 'merry' }, opts.logStream || process.stdout)
   this.router = serverRouter({ default: '/notFoundHandlerRoute' })
   this.env = envobj(opts.env || {})
   this._port = null
@@ -70,13 +66,18 @@ Merry.prototype.listen = function (port) {
 
   var server = http.createServer(this.router.start())
 
+  var self = this
+  var stats = loghttp(server)
+  stats.on('data', function (level, data) {
+    self.log[level](data)
+  })
+
   server.listen(this._port, this.onlisten.bind(this))
 }
 
 Merry.prototype.onlisten = function () {
   this.log.info({
-    message: 'listening',
-    port: this._port,
+    message: 'listening on port:' + this._port,
     env: process.env.NODE_ENV || 'undefined'
   })
 }

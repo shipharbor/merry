@@ -138,7 +138,7 @@ exports.ENOTFOUND = function (req, res, ctx) {
   ctx.send(404, { 
     type: 'invalid_request_error',
     message: 'Invalid request data'
-  }) 
+  })
 }
 
 exports.EDBOFFLINE  = function (req, res, ctx) {
@@ -146,7 +146,7 @@ exports.EDBOFFLINE  = function (req, res, ctx) {
   ctx.send(500, { 
     type: 'api_error',
     message: 'Internal server error'
-  }) 
+  })
 }
 ```
 
@@ -224,7 +224,6 @@ Create a new instance of `merry`. Takes optional opts:
   logging
 - __opts.logStream:__ defaults to `process.stdout`. Set the output writable stream to
   write logs to
-- __opts.logName:__ defaults to `merry`. Sets the name of the logger you're starting
 - __opts.env:__ pass an object containing env var assertions
 
 ### app.route(method, route, handler)

@@ -24,6 +24,7 @@
     "envobj": "^1.0.2",
     "fast-safe-stringify": "^1.1.3",
     "from2-string": "^1.1.0",
+    "log-http": "^1.0.0",
     "pino": "^4.0.0",
     "pino-colada": "^1.4.0",
     "pump": "^1.0.1",
