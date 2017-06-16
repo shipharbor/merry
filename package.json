@@ -1,6 +1,6 @@
 {
   "name": "merry",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "description": "Modular http framework",
   "main": "index.js",
   "bin": {
