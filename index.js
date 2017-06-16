@@ -1,3 +1,4 @@
+var jsonToObject = require('json-stream-to-object')
 var stringify = require('fast-safe-stringify')
 var serverRouter = require('server-router')
 var fromString = require('from2-string')
@@ -101,6 +102,8 @@ Merry.prototype._onerror = function () {
     })
   }
 }
+
+Ctx.prototype.parse = jsonToObject
 
 function Ctx (req, res, log) {
   this.log = log.child({ parent: 'merry:ctx' })

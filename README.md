@@ -135,7 +135,7 @@ Merry comes with a recommended pattern to handle errors.
 // errors.js
 exports.ENOTFOUND = function (req, res, ctx) {
   log.warn('ENOTFOUND')
-  ctx.send(404, { 
+  ctx.send(404, {
     type: 'invalid_request_error',
     message: 'Invalid request data'
   })
@@ -143,7 +143,7 @@ exports.ENOTFOUND = function (req, res, ctx) {
 
 exports.EDBOFFLINE  = function (req, res, ctx) {
   log.error('EDBOFFLINE')
-  ctx.send(500, { 
+  ctx.send(500, {
     type: 'api_error',
     message: 'Internal server error'
   })
@@ -233,15 +233,25 @@ Register a new handler for a route and HTTP method.
 Register a new default handler that will be called if no other handlers match.
 
 #### routes
-Each route has a signature of `(req, res, ctx, done)`:
+Each route has a signature of `(req, res, ctx)`:
 - __req:__ the server's unmodified `req` object
 - __res:__ the server's unmodified `res` object
-- __ctx:__ an object that can contain values and methods. Includes `.params`
-  which are the parameters picked up from the `router` using the `:route`
-  syntax in the route. Includes `.log[loglevel]` which can be used for logging
-  and `.send(statusCode, data, [headers])` which can be used to send data.
-  `send()` efficiently encodes objects to JSON and will set the appropriate
-  headers
+- __ctx:__ an object that can contain values and methods
+
+#### ctx.params
+Parameters picked up from the `router` using the `:route` syntax in the route.
+
+#### ctx.log[loglevel]\([…data])
+Log data. Loglevel can be one of `trace`, `debug`, `info`, `warn`, `error`,
+`fatal`. Can be passed varying arguments.
+
+#### ctx.send(statusCode, data, [headers])
+Efficiently encode JSON, set the appropriate headers and end the request. Uses
+streams under the hood.
+
+#### ctx.parse(jsonStream, callback(err, data))
+Parse a stream of JSON into an object. Useful to decode a server's `req` stream
+with.
 
 ### handler = app.start()
 Create a handler that can be passed directly into an `http` server. Useful if
@@ -285,7 +295,7 @@ $ npm install merry
 - [yoshuawuyts/choo](https://github.com/yoshuawuyts/choo) - fun frontend framework
 - [yoshuawuyts/bankai](https://github.com/yoshuawuyts/bankai) - streaming asset compiler
 - [yoshuawuyts/server-router](https://github.com/yoshuawuyts/server-router) - efficient server router
-- [lrlna/pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter 
+- [lrlna/pino-colada](https://github.com/lrlna/pino-colada) - cute ndjson formatter
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)
