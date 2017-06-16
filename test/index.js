@@ -4,6 +4,8 @@ var request = require('request')
 var http = require('http')
 var tape = require('tape')
 
+require('./context')
+
 var merry = require('../')
 
 tape('merry()', function (t) {
