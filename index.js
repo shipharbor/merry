@@ -35,7 +35,7 @@ Merry.prototype.route = function (method, route, handler) {
   self.router.route(method, route, routeHandler)
 
   function routeHandler (req, res, params) {
-    var ctx = new Ctx(req, res, self.log)
+    var ctx = new Ctx(req, res, self)
     ctx.params = params.params
     handler(req, res, ctx)
   }
@@ -105,8 +105,9 @@ Merry.prototype._onerror = function () {
 
 Ctx.prototype.parse = jsonToObject
 
-function Ctx (req, res, log) {
-  this.log = log.child({ parent: 'merry:ctx' })
+function Ctx (req, res, ctx) {
+  this.log = ctx.log.child({ parent: 'merry:ctx' })
+  this.env = ctx.env
   this.req = req
   this.res = res
 }
