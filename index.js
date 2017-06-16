@@ -48,7 +48,7 @@ Merry.prototype.defaultRoute = function (handler) {
   self.router.route(method, route, routeHandler)
 
   function routeHandler (req, res, params) {
-    var ctx = new Ctx(req, res, self.log)
+    var ctx = new Ctx(req, res, self)
     ctx.params = params.params
     handler(req, res, ctx)
   }
