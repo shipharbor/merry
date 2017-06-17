@@ -27,8 +27,8 @@ Merry.prototype.route = function (method, route, handler) {
   // if a default method is provided, second param is handler
   if (method === 'default') return this.defaultRoute(route)
 
+  assert.ok(Array.isArray(method) || typeof method === 'string', 'Merry.route: method should be type string or an array of strings')
   assert.equal(typeof handler, 'function', 'Merry.route: handler should be type function')
-  assert.equal(typeof method, 'string', 'Merry.route: method should be type string')
   assert.equal(typeof route, 'string', 'Merry.route: route should be type string')
 
   var self = this

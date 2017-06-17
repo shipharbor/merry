@@ -29,7 +29,7 @@
     "pino": "^4.0.0",
     "pino-colada": "^1.4.0",
     "pump": "^1.0.1",
-    "server-router": "^5.1.0"
+    "server-router": "^5.2.0"
   },
   "devDependencies": {
     "dependency-check": "^2.5.1",

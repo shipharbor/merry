@@ -226,8 +226,9 @@ Create a new instance of `merry`. Takes optional opts:
   write logs to
 - __opts.env:__ pass an object containing env var assertions
 
-### app.route(method, route, handler)
-Register a new handler for a route and HTTP method.
+### app.route(method|methods, route, handler)
+Register a new handler for a route and HTTP method. Method can be either a
+single HTTP method, or an array of HTTP methods.
 
 ### app.route('default', handler)
 Register a new default handler that will be called if no other handlers match.
