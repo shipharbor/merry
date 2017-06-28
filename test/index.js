@@ -17,7 +17,7 @@ tape('merry()', function (t) {
 
 tape('http handlers', function (t) {
   t.test('should handle GET requests by default', function (t) {
-    t.plan(3)
+    t.plan(4)
     var app = merry({ logStream: devnull() })
     app.route('GET', '/', function (req, res, ctx) {
       t.pass('was called')
@@ -28,7 +28,7 @@ tape('http handlers', function (t) {
   })
 
   t.test('should handle custom methods', function (t) {
-    t.plan(3)
+    t.plan(4)
     var app = merry({ logStream: devnull() })
     app.route('OPTIONS', '/', function (req, res, ctx) {
       t.pass('was called')
@@ -44,6 +44,7 @@ tape('http handlers', function (t) {
       request(opts, function (err, req) {
         t.ifError(err, 'no err')
         t.equal(req.statusCode, 200, 'status is ok')
+        t.equal(req.headers['content-type'], 'application/json', 'content-type is ok')
         server.close()
       })
     })
@@ -58,6 +59,7 @@ function performGet (server, t, cb) {
     request(uri, function (err, req) {
       t.ifError(err, 'no err')
       t.equal(req.statusCode, 200, 'status is ok')
+      t.equal(req.headers['content-type'], 'application/json', 'content-type is ok')
       server.close()
     })
   })
