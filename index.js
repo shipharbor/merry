@@ -121,7 +121,7 @@ Ctx.prototype.send = function (statusCode, body, headers) {
 
   if (typeof body === 'object') {
     body = stringify(body)
-    headers['content-type'] = 'json'
+    headers['content-type'] = 'application/json'
   }
 
   this.res.writeHead(statusCode, headers)
