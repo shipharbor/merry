@@ -117,7 +117,7 @@ Ctx.prototype.send = function (statusCode, body, headers) {
 
   assert.equal(typeof statusCode, 'number', 'Merry.Ctx.send: statusCode should be type number')
   assert.equal(typeof headers, 'object', 'Merry.Ctx.send: headers should be type object')
-  assert.ok(body, 'Merry.Ctx.send: body should exist')
+  assert.ok(body || body === '', 'Merry.Ctx.send: body should exist')
 
   if (typeof body === 'object') {
     body = stringify(body)
