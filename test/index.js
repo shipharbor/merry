@@ -51,6 +51,25 @@ tape('http handlers', function (t) {
   })
 })
 
+tape('middleware', function (t) {
+  t.test('should be able to modify context', function (t) {
+    t.plan(4)
+    var app = merry({ logStream: devnull() })
+    app.use(function (req, res, ctx) {
+      ctx.foo = function () {
+        t.pass('was called')
+      }
+    })
+    app.route('GET', '/', function (req, res, ctx) {
+      ctx.foo()
+      ctx.send(200, { message: 'butts' })
+      res.end()
+    })
+    var server = http.createServer(app.start())
+    performGet(server, t)
+  })
+})
+
 function performGet (server, t, cb) {
   cb = cb || noop
   server.listen(function () {

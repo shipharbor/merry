@@ -215,7 +215,14 @@ given a route of `/foo/:bar` and we call it with `/foo/hello`, it will show up
 in `ctx` as `{ bar: 'hello' }`.
 
 ## Middleware
-Oh, hey, middleware are just functions, use those.
+We do provide you with a way to access your route's `ctx` via `app.use`
+```js
+var merry = require('merry')
+var app = merry()
+app.use(function (req, res, ctx) {
+  ctx.foo = 'bar'
+})
+```
 
 ## API
 ### app = merry(opts)
@@ -225,6 +232,9 @@ Create a new instance of `merry`. Takes optional opts:
 - __opts.logStream:__ defaults to `process.stdout`. Set the output writable stream to
   write logs to
 - __opts.env:__ pass an object containing env var assertions
+
+### app.use(req, res, ctx)
+Allows you to modify `req`, `res` and `ctx` objects prior to handling a route.
 
 ### app.route(method|methods, route, handler)
 Register a new handler for a route and HTTP method. Method can be either a
