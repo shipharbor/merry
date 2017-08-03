@@ -5,6 +5,10 @@ var env = {
 }
 
 var app = merry({ env: env })
+// example of app.use
+app.use(function (req, res, ctx) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+})
 
 app.route('GET', '/', function (req, res, ctx) {
   ctx.log.info('oh hey, a request here')

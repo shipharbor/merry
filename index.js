@@ -20,6 +20,7 @@ function Merry (opts) {
   this.log = pino({ level: opts.logLevel || 'info', name: 'merry' }, opts.logStream || process.stdout)
   this.router = serverRouter({ default: '/notFoundHandlerRoute' })
   this.env = envobj(opts.env || {})
+  this.middleware = []
   this._port = null
 }
 
@@ -37,6 +38,9 @@ Merry.prototype.route = function (method, route, handler) {
   function routeHandler (req, res, params) {
     var ctx = new Ctx(req, res, self)
     ctx.params = params.params
+    self.middleware.forEach(function (item) {
+      item(req, res, ctx)
+    })
     handler(req, res, ctx)
   }
 }
@@ -50,6 +54,9 @@ Merry.prototype.defaultRoute = function (handler) {
   function routeHandler (req, res, params) {
     var ctx = new Ctx(req, res, self)
     ctx.params = params.params
+    self.middleware.forEach(function (item) {
+      item(req, res, ctx)
+    })
     handler(req, res, ctx)
   }
 }
@@ -59,6 +66,11 @@ Merry.prototype.start = function () {
   this._onerror()
 
   return this.router.start()
+}
+
+Merry.prototype.use = function (handler) {
+  assert.equal(typeof handler, 'function', 'merry.use: handler should be type function')
+  this.middleware.push(handler)
 }
 
 Merry.prototype.listen = function (port) {
