@@ -15,7 +15,7 @@ var createSecureServer
 try {
   createSecureServer = require('http2').createSecureServer
 } catch (e) {
-  createSecureServer = require('http').createServer
+  createSecureServer = require('https').createServer
 }
 
 function Merry (opts) {

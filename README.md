@@ -226,8 +226,10 @@ app.use(function (req, res, ctx) {
 ```
 
 ## HTTP2
-For `http2` support you will need to provide a `key` and a `cert` to establish
-a secure connection. These could be passed as part of merry's opts:
+For [http2](https://nodejs.org/api/http2) support you will need to provide a
+`key` and a `cert` to establish a secure connection. These can be passed as
+part of merry's opts. If `http2` is not available, `https` will be used
+instead.
 ```js
 var merry = require('merry')
 var fs = require('fs')
