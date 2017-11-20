@@ -11,6 +11,13 @@ var pump = require('pump')
 
 module.exports = Merry
 
+var createSecureServer
+try {
+  createSecureServer = require('http2').createSecureServer
+} catch (e) {
+  createSecureServer = require('http').createServer
+}
+
 function Merry (opts) {
   if (!(this instanceof Merry)) return new Merry(opts)
   opts = opts || {}
@@ -77,7 +84,16 @@ Merry.prototype.listen = function (port) {
   this._port = port || this.env.PORT
   assert.equal(typeof this._port, 'number', 'Merry.listen: port should be type number')
 
-  var server = http.createServer(this.router.start())
+  var server
+  if (this.opts.key || this.opts.cert) {
+    assert.ok(this.opts.key, 'merry.listen: for http2 or https connection please provide a secure key')
+    assert.ok(this.opts.cert, 'merry.listen: for http2 or https connection please provide a cert')
+
+    var serverOpts = { key: this.opts.key, cert: this.opts.cert, allowHTTP1: true }
+    server = createSecureServer(serverOpts, this.router.start())
+  } else {
+    server = http.createServer(this.router.start())
+  }
 
   var self = this
   var stats = loghttp(server)
