@@ -15,7 +15,7 @@ var createSecureServer
 try {
   createSecureServer = require('http2').createSecureServer
 } catch (e) {
-  createSecureServer = require('https').createServer
+  throw new Error('HTTP2 is not available, please update your node.js version to 8.4.0 or greater')
 }
 
 function Merry (opts) {

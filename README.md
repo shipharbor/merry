@@ -228,8 +228,8 @@ app.use(function (req, res, ctx) {
 ## HTTP2
 For [http2](https://nodejs.org/api/http2) support you will need to provide a
 `key` and a `cert` to establish a secure connection. These can be passed as
-part of merry's opts. If `http2` is not available, `https` will be used
-instead.
+part of merry's opts. If `http2` is not available, an error will be thrown to
+upgrade your node version to > v8.4.0.
 ```js
 var merry = require('merry')
 var fs = require('fs')
@@ -251,8 +251,8 @@ Create a new instance of `merry`. Takes optional opts:
 - __opts.logStream:__ defaults to `process.stdout`. Set the output writable stream to
   write logs to
 - __opts.env:__ pass an object containing env var assertions
-- __opts.key:__ key to create https or http2 connection
-- __opts.cert:__ cert to create https or http2 connection 
+- __opts.key:__ key to create an http2 connection
+- __opts.cert:__ cert to create an http2 connection 
 
 ### app.use(req, res, ctx)
 Allows you to modify `req`, `res` and `ctx` objects prior to handling a route.
