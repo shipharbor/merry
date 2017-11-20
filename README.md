@@ -68,6 +68,7 @@ customize merry to fit your use case. We hope you have a good time using it.
 - [Configuration](#configuration)
 - [Routing](#routing)
 - [Middleware](#middleware)
+- [HTTP2](#http2)
 - [API](#api)
 - [Installation](#installation)
 - [See Also](#see-also)
@@ -224,6 +225,24 @@ app.use(function (req, res, ctx) {
 })
 ```
 
+## HTTP2
+For [http2](https://nodejs.org/api/http2) support you will need to provide a
+`key` and a `cert` to establish a secure connection. These can be passed as
+part of merry's opts. If `http2` is not available, an error will be thrown to
+upgrade your node version to > v8.4.0.
+```js
+var merry = require('merry')
+var fs = require('fs')
+
+var opts = {
+  key: fs.readFileSync('server-key.pem'),
+  cert: fs.readFileSync('server-cert.pem')
+}
+var app = merry(opts)
+
+app.listen(8080)
+```
+
 ## API
 ### app = merry(opts)
 Create a new instance of `merry`. Takes optional opts:
@@ -232,6 +251,8 @@ Create a new instance of `merry`. Takes optional opts:
 - __opts.logStream:__ defaults to `process.stdout`. Set the output writable stream to
   write logs to
 - __opts.env:__ pass an object containing env var assertions
+- __opts.key:__ key to create an http2 connection
+- __opts.cert:__ cert to create an http2 connection 
 
 ### app.use(req, res, ctx)
 Allows you to modify `req`, `res` and `ctx` objects prior to handling a route.
@@ -268,8 +289,8 @@ Parse a stream of JSON into an object. Useful to decode a server's `req` stream
 with.
 
 ### handler = app.start()
-Create a handler that can be passed directly into an `http` server. Useful if
-you want https or http2 support:
+Create a handler that can be passed directly into an `http` server.
+
 ```js
 var merry = require('merry')
 var http = require('http')
