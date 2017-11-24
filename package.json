@@ -7,7 +7,7 @@
     "merry": "./pretty.js"
   },
   "scripts": {
-    "deps": "dependency-check . && dependency-check . --extra --no-dev --entry pretty.js",
+    "deps": "dependency-check . --ignore-module http2 && dependency-check . --extra --no-dev --entry pretty.js",
     "start": "node example | ./pretty.js",
     "test": "standard && npm run deps && nyc tap test/*.js",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov"

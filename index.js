@@ -11,22 +11,15 @@ var pump = require('pump')
 
 module.exports = Merry
 
-var createSecureServer
-try {
-  createSecureServer = require('http2').createSecureServer
-} catch (e) {
-  throw new Error('HTTP2 is not available, please update your node.js version to 8.4.0 or greater')
-}
-
 function Merry (opts) {
   if (!(this instanceof Merry)) return new Merry(opts)
-  opts = opts || {}
+  this.opts = opts || {}
 
-  assert.equal(typeof opts, 'object', 'Merry: opts should be type object')
+  assert.equal(typeof this.opts, 'object', 'Merry: opts should be type object')
 
-  this.log = pino({ level: opts.logLevel || 'info', name: 'merry' }, opts.logStream || process.stdout)
+  this.log = pino({ level: this.opts.logLevel || 'info', name: 'merry' }, this.opts.logStream || process.stdout)
   this.router = serverRouter({ default: '/notFoundHandlerRoute' })
-  this.env = envobj(opts.env || {})
+  this.env = envobj(this.opts.env || {})
   this.middleware = []
   this._port = null
 }
@@ -90,7 +83,8 @@ Merry.prototype.listen = function (port) {
     assert.ok(this.opts.cert, 'merry.listen: for http2 or https connection please provide a cert')
 
     var serverOpts = { key: this.opts.key, cert: this.opts.cert, allowHTTP1: true }
-    server = createSecureServer(serverOpts, this.router.start())
+    var http2 = http2Server()
+    server = http2.createSecureServer(serverOpts, this.router.start())
   } else {
     server = http.createServer(this.router.start())
   }
@@ -102,6 +96,14 @@ Merry.prototype.listen = function (port) {
   })
 
   server.listen(this._port, this.onlisten.bind(this))
+
+  function http2Server () {
+    try {
+      return require('http2')
+    } catch (e) {
+      throw new Error('HTTP2 is not available, please update your node.js version to 8.4.0 or greater')
+    }
+  }
 }
 
 Merry.prototype.onlisten = function () {
