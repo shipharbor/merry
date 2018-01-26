@@ -155,7 +155,7 @@ Ctx.prototype.send = function (statusCode, body, headers) {
   }
 
   this.res.writeHead(statusCode, headers)
-  pump(fromString(body), this.res, this.ondone)
+  pump(fromString(body), this.res, this.ondone.bind(this)) // need context in ondone
 }
 
 Ctx.prototype.ondone = function (err) {
