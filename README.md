@@ -274,7 +274,7 @@ Each route has a signature of `(req, res, ctx)`:
 Parameters picked up from the `router` using the `:route` syntax in the route.
 
 #### ctx.env
-Environment variables passed into the `choo({ env })` constructor.
+Environment variables passed into the `merry({ env })` constructor.
 
 #### ctx.log[loglevel]\([…data])
 Log data. Loglevel can be one of `trace`, `debug`, `info`, `warn`, `error`,
